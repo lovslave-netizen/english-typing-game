@@ -786,6 +786,7 @@ window.VOICE_MAP = {
  "번째 콤보에요!": "voice/ko/0c0a743ff647.mp3",
  "번째 콤보예요": "voice/ko/1ec5eafda509.mp3",
  "번째 콤보예요.": "voice/ko/7ecdd1a98dca.mp3",
+ "보너스 퀴즈 답 고르기": "voice/ko/4603cd7688bb.mp3",
  "보너스 퀴즈! 이 말을 영어로 하면 무엇일까요? ": "voice/ko/a79730e587ba.mp3",
  "보너스 퀴즈예요!": "voice/ko/cd39a4ac7ab8.mp3",
  "보세요": "voice/ko/ca902ea65c47.mp3",
