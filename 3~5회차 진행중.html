@@ -571,8 +571,9 @@
     });
     $("quiz").hidden = false;
     var parts = (lead || []).concat([ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)]);
-    parts.push(ko("에이, 에스, 디, 에프 중에서 고르세요."));
+    
     opts.forEach(function (o, i) { parts.push(ko(["에이", "에스", "디", "에프"][i]), enWord(o.en)); });
+    parts.push(ko("일번은 에이, 이번은 에스, 삼번은 디, 사번은 에프를 누르면 선택할 수 있어요."));
     $("fb").textContent = "";
     speakSeq(parts);
   }
