@@ -36,7 +36,9 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>영어 타자 연습</h1>
+  <p class="meta" style="margin:8px 0 0;font-size:20px">한국시각장애인복지관</p>
+  <p class="meta" style="margin:0 0 8px;font-size:20px">점자문해교실 영어자판·컴퓨터 타자게임</p>
+  <h1>영어 타자 게임</h1>
 
 
 
@@ -94,6 +96,20 @@
 
     <aside class="side" id="side" aria-label="전체 구성"></aside>
   </div>
+  <section id="over" aria-label="게임 끝" hidden>
+    <h2>게임 끝!</h2>
+    <p id="overText" role="status" aria-live="polite"></p>
+    <label for="nameIn">이름 (별명, 열 글자 이내)</label>
+    <input id="nameIn" maxlength="10" autocomplete="off" style="font:inherit;font-size:24px;min-height:56px;width:100%;box-sizing:border-box;margin:6px 0 12px;padding:8px 12px;border:3px solid currentColor;border-radius:12px;background:transparent;color:inherit">
+    <button type="button" class="btn primary" id="btnSave">점수 저장</button>
+    <button type="button" class="btn" id="btnBoard">점수판 듣기</button>
+    <button type="button" class="btn" id="btnSlowerOver">느리게 말하기 (-)</button>
+    <button type="button" class="btn" id="btnFasterOver">빠르게 말하기 (=)</button>
+    <button type="button" class="btn" id="btnAgainGame">다시 하기 (엔터)</button>
+    <button type="button" class="btn" id="btnHomeOver">처음 화면으로 (8)</button>
+    <h2>점수판 (상위 50명)</h2>
+    <ol id="board"></ol>
+  </section>
 </div>
 
 <script src="voice/manifest.js"></script>
@@ -101,7 +117,7 @@
 (function () {
   "use strict";
 
-  var SENT = ["I am a boy.", "I see a cat.", "We are happy.", "I like the sun.", "I see a big bus.", "I have a red ball.", "I can run fast.", "I eat an apple.", "I read a book.", "I play with the cat.", "I see the blue sky.", "I open the box.", "I want some milk.", "I go to school.", "I drink cold water.", "I walk in the park.", "I sing a song.", "I draw a tree.", "I make a cake.", "I find my hat.", "I write a letter.", "I climb a tall hill.", "I kick a ball.", "You like the sun.", "You see a big bus.", "You have a red ball.", "You can run fast.", "You eat an apple.", "You read a book.", "You play with the cat.", "You see the blue sky.", "You open the box.", "You want some milk.", "You go to school.", "You drink cold water.", "You walk in the park.", "You sing a song.", "You draw a tree.", "You make a cake.", "You find my hat.", "You write a letter.", "You climb a tall hill.", "You kick a ball.", "We like the sun.", "We see a big bus.", "We have a red ball.", "We can run fast.", "We eat an apple.", "We read a book.", "We play with the cat.", "We see the blue sky.", "We open the box.", "We want some milk.", "We go to school.", "We drink cold water.", "We walk in the park.", "We sing a song.", "We draw a tree.", "We make a cake.", "We find my hat.", "We write a letter.", "We climb a tall hill.", "We kick a ball.", "They like the sun.", "They see a big bus.", "They have a red ball.", "They can run fast.", "They eat an apple.", "They read a book.", "They play with the cat.", "They see the blue sky.", "They open the box.", "They want some milk.", "They go to school.", "They drink cold water.", "They walk in the park.", "They sing a song.", "They draw a tree.", "They make a cake.", "They find my hat.", "They write a letter.", "They climb a tall hill.", "They kick a ball.", "My friends like the sun.", "My friends see a big bus.", "My friends have a red ball.", "My friends can run fast.", "My friends eat an apple.", "My friends read a book.", "My friends play with the cat.", "My friends see the blue sky.", "My friends open the box.", "My friends want some milk.", "My friends go to school.", "My friends drink cold water.", "My friends walk in the park.", "My friends sing a song.", "My friends draw a tree.", "My friends make a cake.", "My friends find my hat.", "My friends write a letter.", "My friends climb a tall hill.", "My friends kick a ball.", "The kids like the sun.", "The kids see a big bus.", "The kids have a red ball.", "The kids can run fast.", "The kids eat an apple.", "The kids read a book.", "The kids play with the cat.", "The kids see the blue sky.", "The kids open the box.", "The kids want some milk.", "The kids go to school.", "The kids drink cold water.", "The kids walk in the park.", "The kids sing a song.", "The kids draw a tree.", "The kids make a cake.", "The kids find my hat.", "The kids write a letter.", "The kids climb a tall hill.", "The kids kick a ball.", "My mom likes the sun.", "My mom sees a big bus.", "My mom has a red ball.", "My mom can run fast.", "My mom eats an apple.", "My mom reads a book.", "My mom plays with the cat.", "My mom sees the blue sky.", "My mom opens the box.", "My mom wants some milk.", "My mom goes to school.", "My mom drinks cold water.", "My mom walks in the park.", "My mom sings a song.", "My mom draws a tree.", "My mom makes a cake.", "My mom finds my hat.", "My mom writes a letter.", "My mom climbs a tall hill.", "My mom kicks a ball.", "My dad likes the sun.", "My dad sees a big bus.", "My dad has a red ball.", "My dad can run fast.", "My dad eats an apple.", "My dad reads a book.", "My dad plays with the cat.", "My dad sees the blue sky.", "My dad opens the box.", "My dad wants some milk.", "My dad goes to school.", "My dad drinks cold water.", "My dad walks in the park.", "My dad sings a song.", "My dad draws a tree.", "My dad makes a cake.", "My dad finds my hat.", "My dad writes a letter.", "My dad climbs a tall hill.", "My dad kicks a ball.", "The dog likes the sun.", "The dog sees a big bus.", "The dog has a red ball.", "The dog can run fast.", "The dog eats an apple.", "The dog reads a book.", "The dog plays with the cat.", "The dog sees the blue sky.", "The dog opens the box.", "The dog wants some milk.", "The dog goes to school.", "The dog drinks cold water.", "The dog walks in the park.", "The dog sings a song.", "The dog draws a tree.", "The dog makes a cake.", "The dog finds my hat.", "The dog writes a letter.", "The dog climbs a tall hill.", "The dog kicks a ball.", "Tom likes the sun.", "Tom sees a big bus.", "Tom has a red ball.", "Tom can run fast.", "Tom eats an apple.", "Tom reads a book.", "Tom plays with the cat.", "Tom sees the blue sky.", "Tom opens the box.", "Tom wants some milk.", "Tom goes to school.", "Tom drinks cold water.", "Tom walks in the park.", "Tom sings a song.", "Tom draws a tree.", "Tom makes a cake.", "Tom finds my hat."];
+  var SENT = ["I am a boy.", "I am a girl.", "I am happy.", "I am a student.", "I like the sun.", "I like cats.", "I like dogs.", "I like apples.", "I have a red ball.", "I have a dog.", "I have a cat.", "I have a book.", "I see a cat.", "I see a dog.", "I see a bus.", "I see a big tree.", "I can run.", "I can jump.", "I can swim.", "I can read.", "I eat an apple.", "I drink water.", "I want some milk.", "I want a cake.", "I go to school.", "I read a book.", "I play ball.", "I walk home.", "You are happy.", "You are my friend.", "You can run fast.", "You like red.", "We are friends.", "We go to school.", "We like apples.", "We can play.", "She is my mom.", "He is my dad.", "It is a big tree.", "This is my bag.", "That is a bus.", "It is red.", "It is blue.", "The sun is hot.", "The sky is blue.", "The cat is big.", "The dog is small.", "Look at the cat.", "Come here.", "Let us go.", "Thank you.", "Good morning."];
   var NAMES = { " ": "스페이스", ".": "쩜!", ",": "쉼표", "!": "느낌표", "?": "물음표", "'": "작은따옴표" };
   var KOR = { "1": "일", "2": "이", "3": "삼", "4": "사", "5": "오", "6": "육" };
 
@@ -367,6 +383,12 @@
   function stopAll() { tok++; stopAudio(); try { if (synth) synth.cancel(); } catch (e) {} clearTimeout(st.auto); }
   function ko(t) { return { t: t, lang: "ko" }; }
   function en(t) { return { t: t, lang: "en" }; }
+  // 안내 문장: 게임 중이면 아래 칸에, 게임이 끝난 화면이면 점수 칸에도 보여 줘요
+  function say(t) {
+    $("fb").textContent = t;
+    if (st.over) $("overText").textContent = t;
+    speakSeq([ko(t)]);
+  }
   // 퀴즈의 영어 단어는 말하기 속도와 상관없이 천천히 읽어요
   function enWord(t) { return { t: t, lang: "en", sent: true, slow: true }; }
   function enSent(t) { return { t: t, lang: "en", sent: true }; }
@@ -567,7 +589,7 @@
     var lead = [], msg = "";
     if (complete() && !st.wrong) {
       st.streak++;
-      if (st.streak >= 3) { playCombo(); msg = "콤보! " + st.streak + "번째 콤보에요!"; }
+      if (has("H3") && st.streak >= 3) { playCombo(); msg = "콤보! " + st.streak + "번째 콤보에요!"; }
     } else if (st.wrong && st.streak > 0) {
       st.streak = 0;                       // 틀린 채로 엔터를 누르면 콤보가 끊겨요
       msg = "틀린 글자가 있어서 콤보가 끊겼어요.";
@@ -579,8 +601,11 @@
     }
     if (!has("G")) return;
     if (msg) lead.push(ko(msg));
+    st.sent = (st.sent || 0) + 1;
+    if (!st.wrong) st.perfect = (st.perfect || 0) + 1;
+    if (st.sent >= 10) { endGame(lead); return; }   // 10문장이면 게임 끝
     quizCount++;
-    if (has("H6") && quizCount >= quizEvery) { startQuiz(lead); return; }   // 5문장마다 보너스 퀴즈
+    if (quizCount >= quizEvery) { startQuiz(lead); return; }   // 5문장마다 보너스 퀴즈   // 5문장마다 보너스 퀴즈
     changeSentence(1, lead);
     if (msg) $("fb").textContent = msg;
   }
@@ -788,6 +813,14 @@
 
   /* 키 입력 */
   document.addEventListener("keydown", function (e) {
+    if (st.over) {   // 게임 끝 화면: 이름 칸에 쓰는 중이면 그대로 두고, 엔터는 다시 하기, 8은 처음 화면
+      if (e.target && e.target.tagName === "INPUT") return;
+      if (e.key === "Enter") { e.preventDefault(); startGame(5); return; }
+      if (e.key === "8") { e.preventDefault(); overHome(); return; }
+      if (e.key === "-") { e.preventDefault(); changeSpeed(-1); return; }
+      if (e.key === "=") { e.preventDefault(); changeSpeed(1); return; }
+      return;
+    }
     if ($("app").hidden) return;
     if (quizState) {             // 보너스 퀴즈 중에는 1~4 번 키로 고르고, 다른 키는 무시해요
       if (/^[1-4]$/.test(e.key)) { e.preventDefault(); answerQuiz(+e.key - 1); }
@@ -818,12 +851,71 @@
     if (e.ctrlKey || e.altKey || e.metaKey) return;
     if (e.target && e.target.tagName === "BUTTON" && e.key === "Enter") return;
     if (e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); deleteLetter(); return; }
-    if (e.key === "Enter") { e.preventDefault(); if (has("H3")) pressEnter(); else if (complete() && has("G")) changeSentence(1); return; }
+    if (e.key === "Enter") { e.preventDefault(); if (has("H3") || (complete() && has("G"))) pressEnter(); return; }
     if (e.key.length === 1) { e.preventDefault(); typeKey(e.key); }
   });
 
   /* 버튼 */
+  // 점수판 (구글 시트, Apps Script 웹앱)
+  var SCORE_URL = "https://script.google.com/macros/s/AKfycbypN7HZQvRzpJ_uG6IkeiGSfCz03VE_oA0zLO0FPS98CGVLrLhlzE7hRrk_sJr_3NUS4Q/exec";
+  function hasScoreUrl() { return SCORE_URL.indexOf("https://") === 0; }
+  function loadBoard() {
+    return fetch(SCORE_URL).then(function (r) { return r.json(); }).then(function (d) {
+      var top = d.top || [], box = $("board");
+      box.textContent = "";
+      top.forEach(function (t) {
+        var li = document.createElement("li");
+        li.textContent = t.name + " · " + t.score + "점";
+        box.appendChild(li);
+      });
+      return top;
+    });
+  }
+  function speakBoard() {
+    if (!hasScoreUrl()) { say("점수판 주소가 아직 없어요."); return; }
+    loadBoard().then(function (top) {
+      var parts = [ko(top.length ? "상위 " + top.length + "명을 읽어 드릴게요." : "아직 저장된 점수가 없어요.")];
+      top.forEach(function (t, i) { parts.push(ko((i + 1) + "등"), ko(t.name), ko(t.score + "점")); });
+      speakSeq(parts);
+    }).catch(function () { say("점수판을 불러오지 못했어요."); });
+  }
+  function saveScore() {
+    var name = $("nameIn").value.trim();
+    if (!name) { say("이름을 입력해 주세요."); return; }
+    if (!hasScoreUrl()) { say("점수판 주소가 아직 없어요."); return; }
+    $("btnSave").disabled = true;
+    say("점수를 저장하고 있어요.");
+    fetch(SCORE_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ name: name, score: st.score }) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok) throw new Error("save");
+        say(name + "님, " + st.score + "점을 저장했어요.");
+        speakBoard();
+      })
+      .catch(function () {
+        $("btnSave").disabled = false;
+        say("저장하지 못했어요. 인터넷과 점수판 주소를 확인해 주세요.");
+      });
+  }
+  function endGame(lead) {
+    stopAll(); stopClock(); closeQuiz();
+    st.over = true;
+    $("app").hidden = true; $("over").hidden = false;
+    $("nameIn").value = ""; $("btnSave").disabled = false; $("board").textContent = "";
+    setTimeout(function () { $("nameIn").focus(); }, 300);
+    $("overText").textContent = "10문장을 다 했어요. 총점 " + st.score + "점이에요. 완벽하게 맞힌 문장은 " + (st.perfect || 0) + "개예요.";
+    speakSeq((lead || []).concat([ko("10문장을 다 했어요."), ko("총점"), ko(st.score + "점"), ko("이에요."), ko("다시 하려면 엔터, 처음 화면은 8번을 누르세요.")]));
+  }
+  function overHome() {
+    stopAll(); stopClock(); closeQuiz();
+    st.over = false; $("over").hidden = true;
+    $("app").hidden = true; $("start").hidden = true; $("hub").hidden = false;
+    $("hub5").focus();
+  }
+
   function startGame(n) {
+    st.sent = 0; st.perfect = 0; st.over = false; $("over").hidden = true; closeQuiz();
     n = (typeof n === "number") ? n : 3;
     ctx();
     $("hub").hidden = true; $("start").hidden = true; $("app").hidden = false;
@@ -864,6 +956,13 @@
   ["hub3", "hub4", "hub5"].forEach(function (id) {
     $(id).addEventListener("focus", function () { speakSeq([ko($(id).textContent.trim())]); });
   });
+  $("btnSave").addEventListener("click", function () { ctx(); saveScore(); });
+  $("btnBoard").addEventListener("click", function () { ctx(); speakBoard(); });
+  $("btnAgainGame").addEventListener("click", function () { ctx(); startGame(5); });
+  $("btnHomeOver").addEventListener("click", function () { ctx(); overHome(); });
+  $("btnSlowerOver").addEventListener("click", function () { ctx(); changeSpeed(-1); });
+  $("btnFasterOver").addEventListener("click", function () { ctx(); changeSpeed(1); });
+  $("nameIn").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); ctx(); saveScore(); } });
   setTimeout(function () { $("hub5").focus(); }, 300);
 })();
 </script>
