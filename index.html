@@ -43,7 +43,7 @@
       <p class="meta" id="speedline"></p>
       <div class="fb" id="fb" role="status" aria-live="polite"></div>
 
-      <section id="quiz" aria-label="아이템 퀴즈" hidden style="border:4px solid currentColor;border-radius:14px;padding:12px 16px;margin:12px 0">
+      <section id="quiz" aria-label="보너스 퀴즈" hidden style="border:4px solid currentColor;border-radius:14px;padding:12px 16px;margin:12px 0">
         <p id="quizQ" role="status" aria-live="polite" style="font-size:26px;font-weight:700"></p>
         <div id="quizOpts"></div>
       </section>
@@ -426,7 +426,7 @@
     render();
     if (st.sent >= ROUND_LEN) { endGame(lead); return; }
     quizCount++;
-    if (quizCount >= quizEvery) { startQuiz(lead); return; }   // 2~3문장마다 아이템 퀴즈
+    if (quizCount >= quizEvery) { startQuiz(lead); return; }   // 2~3문장마다 보너스 퀴즈
     changeSentence(1, lead);
     $("fb").textContent = lead.map(function (x) { return x.t; }).join(" ");
   }
@@ -642,7 +642,7 @@
     for (var n = 0; n < order.length; n++) { SENT[n] = en[n]; KSENT[n] = kr[n]; }
   }
   // 한글 입력 모드를 켜고 끄면서 게임을 시작해요 ("ko" 면 한글로 치기)
-  /* 아이템 퀴즈: 2~3문장마다 랜덤으로 영어 단어 퀴즈. 맞히면 200점, 틀리면 100점 */
+  /* 보너스 퀴즈: 2~3문장마다 랜덤으로 영어 단어 퀴즈. 맞히면 200점, 틀리면 100점 */
   var QUIZ = [
     { ko: "고양이", en: "cat" }, { ko: "개", en: "dog" }, { ko: "사과", en: "apple" }, { ko: "책", en: "book" },
     { ko: "공", en: "ball" }, { ko: "태양", en: "sun" }, { ko: "물", en: "water" }, { ko: "학교", en: "school" },
@@ -659,7 +659,7 @@
     var opts = shuffleArr([q].concat(others));
     quizState = { q: q, opts: opts, ans: opts.indexOf(q) };
     quizCount = 0; quizEvery = 2 + Math.floor(Math.random() * 2);
-    $("quizQ").textContent = "아이템 퀴즈! 이 말을 영어로 하면 무엇일까요? " + q.ko;
+    $("quizQ").textContent = "보너스 퀴즈! 이 말을 영어로 하면 무엇일까요? " + q.ko;
     var box = $("quizOpts"); box.textContent = "";
     opts.forEach(function (o, i) {
       var b = document.createElement("button");
@@ -669,7 +669,7 @@
       box.appendChild(b);
     });
     $("quiz").hidden = false;
-    var parts = (lead || []).concat([ko("아이템 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)]);
+    var parts = (lead || []).concat([ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)]);
     opts.forEach(function (o, i) { parts.push(ko(OPT_NAMES[i]), en(o.en)); });
     $("fb").textContent = "";
     speakSeq(parts);
