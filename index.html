@@ -560,10 +560,13 @@
     stopAll(); stopClock();
     st.over = true;
     $("app").hidden = true; $("over").hidden = false;
-    $("nameIn").value = ""; $("btnSave").disabled = false; $("board").textContent = "";
+    $("nameIn").value = ""; nameLast = ""; $("btnSave").disabled = false; $("board").textContent = "";
     setTimeout(function () { $("nameIn").focus(); }, 300);
     $("overText").textContent = "10문장을 다 했어요. 총점 " + st.score + "점이에요. 완벽하게 맞힌 문장은 " + st.perfect + "개예요.";
-    speakSeq((lead || []).concat([ko("10문장을 다 했어요."), ko("총점"), ko(st.score + "점"), ko("이에요."), ko("다시 하려면 엔터, 처음 화면은 8번을 누르세요.")]));
+    speakSeq((lead || []).concat([ko("10문장을 다 했어요."), ko("총점"), ko(st.score + "점"), ko("이에요."),
+      ko("완벽하게 맞힌 문장은"), ko(st.perfect + "개예요."),
+      ko("이름을 쓰고 엔터를 누르면 점수를 저장해요."), ko("점수판을 들으려면 점수판 듣기 버튼을 누르세요."),
+      ko("다시 하려면 엔터, 처음 화면은 8번을 누르세요.")]));
   }
 
   /* 시간 (H5): 문장을 들은 뒤부터 재고 똑딱 소리를 내요 */
@@ -937,6 +940,21 @@
   $("btnBoard").addEventListener("click", function () { ctx(); speakBoard(); });
   $("btnSlowerOver").addEventListener("click", function () { ctx(); changeSpeed(-1); });
   $("btnFasterOver").addEventListener("click", function () { ctx(); changeSpeed(1); });
+  // 이름 칸에 쓴 글자를 한 글자씩 읽어요. 지우면 "지웠어요"
+  var nameLast = "";
+  function charPart(c) { return /[a-zA-Z]/.test(c) ? engChar(c.toLowerCase()) : ko(c); }
+  $("nameIn").addEventListener("input", function (e) {
+    if (e.isComposing) return;   // 한글은 글자가 완성된 뒤에 읽어요
+    var v = $("nameIn").value;
+    if (v.length > nameLast.length) speakSeq([charPart(v.slice(-1))]);
+    else speakSeq([ko("지웠어요.")]);
+    nameLast = v;
+  });
+  $("nameIn").addEventListener("compositionend", function () {
+    var v = $("nameIn").value;
+    if (v.length > nameLast.length) speakSeq([charPart(v.slice(-1))]);
+    nameLast = v;
+  });
   $("nameIn").addEventListener("keydown", function (e) {
     if (e.key === "Enter") { e.preventDefault(); ctx(); saveScore(); }
   });
