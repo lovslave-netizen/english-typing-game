@@ -728,6 +728,8 @@
     if (e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); deleteLetter(); return; }
     if (e.key === "Enter") { e.preventDefault(); pressEnter(); return; }
     if (e.key.length === 1) {
+      // 단축키가 아닌 키를 처음 치는 순간부터 시간을 재요
+      if (!st.t0 && !complete()) startClock();
       // 한글 모드에서는 숨겨진 입력칸이 글자를 받아요
       if (koMode) { if (document.activeElement !== $("hangulInput")) $("hangulInput").focus(); return; }
       e.preventDefault(); typeKey(e.key);
