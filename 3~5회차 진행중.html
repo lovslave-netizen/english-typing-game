@@ -569,20 +569,23 @@
     if (complete()) {
       stopClock();
       st.sentDone = (st.sentDone || 0) + 1;
-      var done = "문장을 다 쳤어요.";
-      if (has("F1") && !st.wrong) { ding(); done = "딩동댕! 전부 맞았어요. " + done; }
+      // 안내 문장은 조각으로 나눠서 미리 만든 음성으로 읽어요
+      var pieces = [];
+      if (has("F1") && !st.wrong) { ding(); pieces.push(ko("딩동댕! 전부 맞았어요.")); }
+      pieces.push(ko("문장을 다 쳤어요."));
       if (has("F3") && st.sentDone % 3 === 0) parts.push(ko("문장 세 개 완성! 잘하고 있어요."));
       if (has("H5")) {
         var sec = (Date.now() - st.t0) / 1000;
         var bonus = sec <= 10 ? 50 : (sec <= 20 ? 30 : 0);
         st.score += bonus;
-        done += bonus ? " 시간 보너스 " + bonus + "점!" : " 시간 보너스는 없어요.";
+        if (bonus) pieces.push(ko("시간 보너스"), ko(bonus + "점"));
+        else pieces.push(ko("시간 보너스는 없어요."));
       }
-      if (has("H4") || has("H5")) done += " 현재 " + st.score + "점이에요.";
-      if (has("G")) done += " 엔터를 누르면 다음 문장이에요.";
+      if (has("H4") || has("H5")) pieces.push(ko("현재"), ko(st.score + "점"), ko("이에요."));
+      if (has("G")) pieces.push(ko("엔터를 누르면 다음 문장이에요."));
       render();
-      $("fb").textContent = done;
-      parts.push(ko(done));
+      $("fb").textContent = pieces.map(function (x) { return x.t; }).join(" ");
+      parts = parts.concat(pieces);
     }
     if (parts.length) speakSeq(parts);
   }
