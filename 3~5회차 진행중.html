@@ -603,7 +603,6 @@
     if (msg) lead.push(ko(msg));
     st.sent = (st.sent || 0) + 1;
     if (!st.wrong) st.perfect = (st.perfect || 0) + 1;
-    if (st.sent >= 10) { endGame(lead); return; }   // 10문장이면 게임 끝
     quizCount++;
     if (has("H6") && quizCount >= quizEvery) { startQuiz(lead); return; }   // 6번 질문을 고친 뒤에만, 5문장마다 보너스 퀴즈   // 5문장마다 보너스 퀴즈
     changeSentence(1, lead);
