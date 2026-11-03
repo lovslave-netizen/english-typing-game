@@ -147,7 +147,12 @@
   });
   var POOL = POOL5;
   var BASE = POOL3.length + POOL4.length;   // 5회는 4회까지 고친 상태에서 시작해요
-  var DECOY = { X1: { cmd: "뒤로 가기 버튼을 만들어 줘." } };   // 헷갈리는 보기 대신 쓰는 다른 예시
+  var DECOY = {
+    X1: { cmd: "뒤로 가기 버튼을 만들어 줘." },
+    X2: { cmd: "배경 색을 바꿔 줘." },
+    X3: { cmd: "글자를 더 크게 보여 줘." },
+    X4: { cmd: "틀린 글자를 치면 아무 소리도 내지 마." }
+  };   // 헷갈리는 보기 대신 쓰는 다른 예시
   function cmdOf(k) { return BUG[k] ? BUG[k].cmd : DECOY[k].cmd; }
 
   var $ = function (id) { return document.getElementById(id); };
@@ -384,6 +389,7 @@
     var k = cur(); if (!k) return [];
     var others = remaining().slice(1).concat(st.fixed);
     if (k === "A") others = ["X1", "C", "D"];   // 1번 문제만: 글자 읽기 보기를 다른 예시로 바꿈
+    if (k === "H4") others = ["X2", "X3", "X4"];   // 점수 문제: 점수와 관계없는 다른 보기로 바꿈
     var arr = others.slice(0, 3);
     arr.splice(Math.min(BUG[k].pos - 1, arr.length), 0, k);   // 정답 위치는 문제마다 정해져 있어요
     return arr;
