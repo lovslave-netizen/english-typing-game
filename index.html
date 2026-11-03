@@ -343,6 +343,8 @@
     chars.splice(p, 0, ch);
     setRaw(chars);
     st.cA = { area: "typed", pos: p };
+    // 커서 자리에 넣은 글자도 맞으면 소리가 한 단계 올라가고, 틀리면 처음으로 돌아가요
+    if (st.raw[p].ok) st.pitch++; else st.pitch = 0;
     if (!quiet) keySound(st.raw[p].ok);
     render();
     if (!quiet && !koMode) speakSeq([engChar(ch)]);
