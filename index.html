@@ -344,6 +344,8 @@
   function typeKey(ch, quiet) {
     if (st.cA && st.cA.area === "typed" && st.raw.length) { insertAtCursor(ch, quiet); return; }
     if (complete()) { say("문장을 다 쳤어요. 엔터를 누르세요."); return; }
+    // 시간은 첫 글자를 칠 때부터 재요 (문장을 다 읽기 전에 쳐도 보너스를 받을 수 있게)
+    if (!st.t0) startClock();
     var exp = TGT()[st.si].charAt(st.idx), ok = ch.toLowerCase() === exp.toLowerCase();
     st.raw.push({ ch: ch, ok: ok });
     st.idx++;   // 틀려도 다음 칸으로 넘어가요. 틀린 글자는 백스페이스로 지울 수 있어요.
@@ -515,6 +517,7 @@
 
   /* 시간 (H5): 문장을 들은 뒤부터 재고 똑딱 소리를 내요 */
   function startClock() {
+    if (st.t0 && st.clockOn) return;   // 이미 재고 있으면 다시 시작하지 않아요
     st.t0 = Date.now(); st.clockOn = true;
     clearInterval(st.tickTimer);
     st.tickTimer = setInterval(function () {
