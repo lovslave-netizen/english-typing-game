@@ -70,6 +70,12 @@ def collect(html):
     # 점수판 상위 50명을 읽을 때 쓰는 문장과 등수
     board = ["상위 %d명을 읽어 드릴게요." % n for n in range(1, 51)] + ["%d등" % n for n in range(1, 51)]
     ko_all = sorted(set(ko_lits + numbers + extra + words + board + ["정답은"]))
+    # 고칠 것 메뉴 안내: "이번이 맞았어요", "이번은 틀렸어요", "삼 버전을 열었어요" 같은 한 덩어리 문장
+    menu_names = ["일번", "이번", "삼번", "사번"]
+    knum = ["일", "이", "삼", "사", "오", "육", "칠", "팔"]
+    menu = [n + "이 맞았어요." for n in menu_names] + [n + "은 틀렸어요." for n in menu_names]
+    menu += [k + " 버전을 열었어요." for k in knum] + [k + " 버전으로 돌아왔어요." for k in knum]
+    ko_all = sorted(set(ko_all + menu))
     # 마침표로 끝나는 문장은 마침표 앞까지도 따로 만들어요 (끝에 "쩜!"을 붙여 읽으려고)
     # 아이템 퀴즈의 영어 단어 (QUIZ 목록의 en: "...")
     quiz_en = re.findall(r'\ben: "([^"]+)"', script)

@@ -423,8 +423,9 @@
     var chosen = st.opts[i], k = cur();
     if (chosen !== k) {
       // 안내 문장은 조각으로 나눠서 미리 만든 음성으로 읽어요
-      var wrong = [ko(OPT_NAMES[i]), ko("은 틀렸어요."), ko("아무 일도 실행되지 않았어요."), ko("다시 골라 보세요.")];
-      $("fb").textContent = wrong.map(function (x) { return x.t; }).join(" ");
+      // 화면에는 숫자로, 소리는 "이번은 틀렸어요"처럼 한 덩어리로 읽어요
+      var wrong = [ko(OPT_NAMES[i] + "은 틀렸어요."), ko("아무 일도 실행되지 않았어요."), ko("다시 골라 보세요.")];
+      $("fb").textContent = (i + 1) + "번은 틀렸어요. 아무 일도 실행되지 않았어요. 다시 골라 보세요.";
       speakSeq(wrong);
       return;
     }
@@ -432,9 +433,9 @@
     st.combo = 0; st.streak = 0; st.pitch = 0;   // 고친 뒤에는 콤보를 처음부터 다시 셉니다
     closeMenu();
     st.idx = 0; st.raw = []; st.wrong = false; st.rcD = -1; st.rcE = -1;
-    var parts = [ko(OPT_NAMES[i]), ko("이 맞았어요."), ko(BUG[k].now), ko("명령:"), ko(BUG[k].cmd), ko("버전"), ko(KNUM[version()] || String(version())), ko("을 열었어요.")];
+    var parts = [ko(OPT_NAMES[i] + "이 맞았어요."), ko(BUG[k].now), ko("명령:"), ko(BUG[k].cmd), ko(KNUM[version()] + " 버전을 열었어요.")];
     if (allDone()) parts.push(ko("6개를 모두 고쳤어요. 여기까지 끝!"));
-    $("fb").textContent = parts.map(function (x) { return x.t; }).join(" ");
+    $("fb").textContent = (i + 1) + "번이 맞았어요. " + BUG[k].now + " 명령: " + BUG[k].cmd + " 버전 " + version() + " 을 열었어요.";
     render();
     speakSeq(parts.concat([enSent(SENT[st.si])]));   // 시간은 첫 키를 누를 때 시작해요
   }
@@ -445,9 +446,9 @@
     st.fixed.pop(); closeMenu();
     st.combo = 0; st.streak = 0; st.pitch = 0;
     st.idx = 0; st.raw = []; st.wrong = false; st.rcD = -1; st.rcE = -1;
-    $("fb").textContent = "버전 " + KNUM[version()] + "으로 돌아왔어요.";
+    $("fb").textContent = "버전 " + version() + "으로 돌아왔어요.";
     render();
-    speakSeq([ko("버전"), ko(KNUM[version()]), ko("으로 돌아왔어요."), enSent(SENT[st.si])]);
+    speakSeq([ko(KNUM[version()] + " 버전으로 돌아왔어요."), enSent(SENT[st.si])]);
   }
 
   /* 화면 */
