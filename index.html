@@ -495,7 +495,7 @@
   }
   // 10문장이 끝나면 게임이 끝나요
   // 점수판 (구글 시트, Apps Script 웹앱). 주소는 README 3단계에서 받아 여기에 넣어요.
-  var SCORE_URL = "https://script.google.com/macros/s/AKfycbypN7HZQvRzpJ_uG6IkeiGSfCz03VE_oA0zLO0FPS98CGVLrLhlzE7hRrk_sJr_3NUS4Q/exec";
+  var SCORE_URL = "https://script.google.com/macros/s/AKfycbxmUsccztV9G0PoOPbK_HMNIfrA6o-dwAfLXXCQ9dUYQcNxn5oS3KAsOmvjl-qr5Lb7YQ/exec";
   function hasScoreUrl() { return SCORE_URL.indexOf("https://") === 0; }
   // 점수판은 영어 타자와 한글 타자를 따로 모아요
   function scoreMode() { return koMode ? "한글" : "영어"; }
@@ -752,9 +752,13 @@
     focusTyping();
   }
   // 폰에서 키보드가 올라오려면 글 입력칸이 선택되어 있어야 해요. 영어와 한글 모두 이 칸으로 받아요.
+  // 폰의 지우기 키는 입력칸이 비어 있으면 아무 신호도 안 보내서, 보이지 않는 글자 한 자를 늘 넣어 둬요
+  var MARK = "​";
   function focusTyping() {
-    if ($("app").hidden || st.over || quizState) return;
-    if (document.activeElement !== $("hangulInput")) $("hangulInput").focus();
+    if ($("app").hidden || st.over) return;
+    var el = $("hangulInput");
+    if (!el.value) el.value = MARK;
+    if (document.activeElement !== el) el.focus();
   }
 
   /* 키 입력 */
@@ -810,6 +814,8 @@
       if (e.key === "=") { e.preventDefault(); changeSpeed(1); return; }   // 퀴즈 중에도 속도는 바꿀 수 있어요
       if (e.key === "-") { e.preventDefault(); changeSpeed(-1); return; }
       if (e.key === "3") { e.preventDefault(); stopAll(); return; }
+      // 폰: 빈칸에 쓴 글자가 남아 있으면 엔터로 그 글자를 골라요 (다음 문장으로 넘어가지는 않아요)
+      if (e.key === "Enter") { if ($("hangulInput").value.split(MARK).join("")) { e.preventDefault(); flushHangul(); } return; }
       if (!/^[0-9=\-]$/.test(e.key)) return;
     }
     if (st.over) {               // 게임이 끝난 화면: 이름 칸에 쓰는 중이면 그대로 두고, 엔터는 다시 하기, 8은 처음 화면
@@ -849,6 +855,8 @@
     if (e.key === "5" || e.key === "0") { e.preventDefault(); return; }
     if (e.target && e.target.tagName === "BUTTON" && e.key === "Enter") return;
     if (e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); deleteLetter(); return; }
+    // 폰에서 빈칸에 쓴 글자가 아직 안 들어갔으면, 엔터는 글자를 넣기만 하고 다음 문장으로 넘어가지 않아요
+    if (e.key === "Enter" && $("hangulInput").value.split(MARK).join("")) { e.preventDefault(); flushHangul(); return; }
     if (e.key === "Enter") { e.preventDefault(); pressEnter(); return; }
     if (e.key.length === 1) {
       // 단축키가 아닌 키를 처음 치는 순간부터 시간을 재요
@@ -878,18 +886,34 @@
       ddaeng();
     }
   }
-  function flushHangul() {
-    var el = $("hangulInput"), t = el.value;
+  function flushHangul(e) {
+    var el = $("hangulInput"), t = el.value.split(MARK).join("");
+    el.value = MARK;
+    if (e && e.inputType === "deleteContentBackward") {   // 폰의 지우기 키
+      if (!quizState) deleteLetter();
+      return;
+    }
     if (!t) return;
-    el.value = "";
+    if (quizState) { answerByChar(t); return; }
     if (!st.t0 && !complete()) startClock();   // 폰 키보드로 친 첫 글자부터 시간을 재요
     Array.from(t).forEach(function (c) {
       typeKey(c, c === lastPreview);   // 미리 알려 준 글자는 다시 말하지 않아요
     });
     lastPreview = "";
   }
-  $("hangulInput").addEventListener("input", function (e) { if (!e.isComposing) flushHangul(); });
-  $("hangulInput").addEventListener("compositionend", flushHangul);
+  // 퀴즈 중 폰 키보드로 친 글자: A S D F (한글 ㅁㄴㅇㄹ) 로 고르고, 1 은 다시 듣기
+  function answerByChar(t) {
+    var c = t.charAt(0).toLowerCase();
+    var k = { a: 0, s: 1, d: 2, f: 3, "ㅁ": 0, "ㄴ": 1, "ㅇ": 2, "ㄹ": 3 }[c];
+    if (k !== undefined) { answerQuiz(k); return; }
+    if (c === "1") { speakSeq(quizState.speech); return; }
+    if (c === "=") changeSpeed(1);
+    else if (c === "-") changeSpeed(-1);
+    else if (c === "3") stopAll();
+  }
+  // 영어 키보드는 글자를 쓰는 중에도 바로 넣고, 한글은 조합이 끝난 뒤에 넣어요
+  $("hangulInput").addEventListener("input", function (e) { if (!e.isComposing || !koMode) flushHangul(e); });
+  $("hangulInput").addEventListener("compositionend", function () { flushHangul(); });
 
   /* 버튼 */
   $("btnStart").addEventListener("click", function () { startChoice = 0; paintStart(); startGame(); });

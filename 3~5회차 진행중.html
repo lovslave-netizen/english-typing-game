@@ -877,7 +877,7 @@
 
   /* 버튼 */
   // 점수판 (구글 시트, Apps Script 웹앱)
-  var SCORE_URL = "https://script.google.com/macros/s/AKfycbypN7HZQvRzpJ_uG6IkeiGSfCz03VE_oA0zLO0FPS98CGVLrLhlzE7hRrk_sJr_3NUS4Q/exec";
+  var SCORE_URL = "https://script.google.com/macros/s/AKfycbxmUsccztV9G0PoOPbK_HMNIfrA6o-dwAfLXXCQ9dUYQcNxn5oS3KAsOmvjl-qr5Lb7YQ/exec";
   function hasScoreUrl() { return SCORE_URL.indexOf("https://") === 0; }
   function loadBoard() {
     return fetch(SCORE_URL).then(function (r) { return r.json(); }).then(function (d) {
