@@ -109,6 +109,7 @@
   <noscript><p>이 게임은 자바스크립트가 필요해요.</p></noscript>
 </div>
 
+<script src="voice/manifest.js"></script>
 <script>
 (function () {
   "use strict";
@@ -176,9 +177,9 @@
         { q: "윗줄에서 오른손 약지가 누르는 키는 무엇일까요?", o: ["I", "O", "P", "U"], a: 1,
           h: ["윗줄이에요.", "오른손 약지가 눌러요.", "L 바로 위예요."],
           e: "O예요. 가운뎃줄 L 바로 위예요." },
-        { q: "2보드 윗줄에서 맨 왼쪽 글자 키는 무엇일까요?", o: ["T", "Y", "U", "P"], a: 1,
-          h: ["윗줄이에요. 1보드 윗줄 끝 글자 T 다음이에요.", "오른손 검지가 눌러요.", "2보드 윗줄의 첫 칸이에요."],
-          e: "Y예요. T 다음에 Y가 이어져요." },
+        { q: "아랫줄에서 오른손 약지가 누르는 키는 무엇일까요?", o: ["쉼표", "마침표", "슬래시", "M"], a: 1,
+          h: ["2보드에서 맨 오른쪽 끝에 SHI가 있는 줄이에요.", "오른손 약지가 눌러요.", "쉼표 바로 오른쪽이에요."],
+          e: "마침표예요. 가운뎃줄 L 아래에 있어요." },
         { q: "가운뎃줄에서 오른손 새끼손가락이 누르는 키는 무엇일까요?", o: ["L", "세미콜론", "따옴표", "엔터"], a: 1,
           h: ["가운뎃줄이에요.", "오른손 새끼손가락이에요.", "L 바로 오른쪽이에요."],
           e: "세미콜론이에요. 그 오른쪽이 따옴표예요." },
@@ -186,15 +187,15 @@
           h: ["규칙을 다시 들어 보세요. 딩동이면 K예요.", "오른손 중지가 눌러요.", "J 돌기 오른쪽 한 칸이에요."],
           e: "K예요. 조건을 보고 할 일을 고르는 게 조건문이에요." }
       ] },
-    { n: 5, t: "아랫줄 오른쪽과 숫자줄", k: "W",
-      intro: "오늘은 2보드 아랫줄과 숫자줄이에요. 아니면, 하고 한 가지가 더 붙으면 둘 중 하나를 고르는 거예요.",
+    { n: 5, t: "숫자줄", k: "W",
+      intro: "오늘은 숫자줄이에요. 아니면, 하고 한 가지가 더 붙으면 둘 중 하나를 고르는 거예요.",
       qs: [
-        { q: "아랫줄에서 오른손 약지가 누르는 키는 무엇일까요?", o: ["쉼표", "마침표", "슬래시", "M"], a: 1,
-          h: ["2보드에서 맨 오른쪽 끝에 SHI가 있는 줄이에요.", "오른손 약지가 눌러요.", "쉼표 바로 오른쪽이에요."],
-          e: "마침표예요. 가운뎃줄 L 아래에 있어요." },
-        { q: "아랫줄에서 N 바로 오른쪽 키는 무엇일까요?", o: ["B", "M", "쉼표", "H"], a: 1,
-          h: ["아랫줄이에요.", "오른손 검지가 눌러요.", "N 바로 옆이에요."],
-          e: "M이에요. J 바로 아래예요." },
+        { q: "숫자줄 맨 왼쪽 물결표에서 오른쪽으로 두 번째 키는 무엇일까요?", o: ["1", "2", "3", "4"], a: 1,
+          h: ["숫자줄이에요. 윗줄 바로 위예요.", "왼손 약지가 누르는 숫자예요.", "물결표 오른쪽으로 두 칸이에요."],
+          e: "2예요. 새끼 1, 약지 2, 중지 3이에요." },
+        { q: "숫자줄에서 왼손 검지가 누르는 두 숫자는 무엇일까요?", o: ["1과 2", "2와 3", "3과 4", "4와 5"], a: 3,
+          h: ["숫자줄이에요.", "새끼, 약지, 중지 다음이 검지예요.", "3 다음 두 칸이에요."],
+          e: "4와 5예요. 6은 1보드 끝에 있지만 오른손 검지가 눌러요." },
         { q: "2보드 숫자줄 맨 왼쪽 숫자는 무엇일까요?", o: ["6", "7", "8", "9"], a: 1,
           h: ["숫자줄이에요. 1보드 숫자줄 끝 숫자는 6이에요.", "오른손 검지가 눌러요.", "6 다음 숫자예요."],
           e: "7이에요. 7, 8, 9, 0이 이어져요." },
@@ -345,24 +346,49 @@
     if (buf.trim()) out.push(buf.trim());
     return out;
   }
-  function stopSpeech() { token++; try { if (synth) synth.cancel(); } catch (e) {} }
-  function speak(text, rate) {
-    var my = ++token;
-    if (!synth || !store.tts || !text) return Promise.resolve(false);
-    try { synth.cancel(); } catch (e) {}
-    var parts = chunk(pron(text)), i = 0;
+  var curAud = null;
+  function stopAud() { if (curAud) { try { curAud.pause(); } catch (e) {} curAud = null; } }
+  function stopSpeech() { token++; stopAud(); try { if (synth) synth.cancel(); } catch (e) {} }
+  // 미리 만든 음성 파일(mp3)을 재생해요. 끝나면 true
+  function playFileSpeech(src, rate, my) {
     return new Promise(function (res) {
-      function next() {
-        if (my !== token) { res(false); return; }
-        if (i >= parts.length) { res(true); return; }
-        var u = new SpeechSynthesisUtterance(parts[i++]);
-        u.lang = "ko-KR"; if (voice) u.voice = voice; u.rate = rate || RATES[store.rateI2] || 1.2;
-        u.onend = next; u.onerror = next;
-        keepAlive.push(u); if (keepAlive.length > 20) keepAlive.shift();
-        try { synth.speak(u); } catch (e) { res(false); }
-      }
-      setTimeout(next, 40);
+      var a = new Audio(src); curAud = a; a.playbackRate = rate;
+      a.onended = function () { res(my === token); };
+      a.onerror = function () { res(false); };
+      var pr = a.play(); if (pr && pr.catch) pr.catch(function () { res(false); });
     });
+  }
+  // 기계 음성으로 한 조각을 읽어요 (음성 파일이 없는 조각만)
+  function speakMachine(t, r, my) {
+    return new Promise(function (res) {
+      if (!synth || my !== token) { res(false); return; }
+      var u = new SpeechSynthesisUtterance(pron(t));
+      u.lang = "ko-KR"; if (voice) u.voice = voice; u.rate = r;
+      u.onend = function () { res(my === token); }; u.onerror = function () { res(false); };
+      keepAlive.push(u); if (keepAlive.length > 20) keepAlive.shift();
+      try { synth.speak(u); } catch (e) { res(false); }
+    });
+  }
+  // 문장을 쉼표·마침표 단위 조각으로 나눠, 조각마다 미리 만든 음성을 찾아 읽어요
+  // 한 자리 수는 한글로 읽어요 (2 → 이). 두 자리 이상은 그대로 둬요
+  function koDigits(t) { return String(t).replace(/(?<!\d)[1-9](?!\d)/g, function (d) { return SINO[+d]; }); }
+  function speak(text, rate) {
+    text = koDigits(text);
+    var my = ++token;
+    if (!store.tts || !text) return Promise.resolve(false);
+    var r = rate || RATES[store.rateI2] || 1.2;
+    var map = window.VOICE_MAP || {};
+    var segs = String(text).split(/[.!?,]\s*/).map(function (t) { return t.trim(); }).filter(Boolean);
+    stopAud(); try { if (synth) synth.cancel(); } catch (e) {}
+    var i = 0;
+    function nextSeg() {
+      if (my !== token) return Promise.resolve(false);
+      if (i >= segs.length) return Promise.resolve(true);
+      var t = segs[i++];
+      var p = map[t] ? playFileSpeech(map[t], r, my) : speakMachine(t, r, my);
+      return p.then(function (ok) { return ok ? nextSeg() : false; });
+    }
+    return nextSeg();
   }
   function announce(t) { live.textContent = ""; setTimeout(function () { live.textContent = t; }, 60); }
 
@@ -503,9 +529,14 @@
     speak(S.narr).then(function (ok) { if (ok && S.screen === "intro") sfx("bibi"); });
   }
 
+  // 읽을 때 쓰는 낱말: 수는 한글(일, 이, 삼 …), 개수는 순우리말(하나, 둘 …)
+  var SINO = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구", "십"];
+  var NATIVE = ["", "하나", "둘", "셋", "넷", "다섯", "여섯", "일곱", "여덟", "아홉", "열"];
+  var OPTW = ["일번", "이번", "삼번", "사번"];
+  function spokenOpt(t) { return /^[1-9]$/.test(t) ? SINO[+t] : t; }
   function optSay(q, i) {
     var st = S.wrong.indexOf(i) >= 0 ? ". 틀린 보기예요" : (S.answered && i === q.a ? ". 열리는 보기예요" : "");
-    return (i + 1) + "번, " + q.o[i] + st;
+    return OPTW[i] + ", " + spokenOpt(q.o[i]) + st;
   }
 
   function viewQ() {
@@ -527,7 +558,7 @@
       '<div class="row"><button type="button" class="btn say" data-action="repeat" aria-label="문제 다시 듣기, 알 키">다시 듣기 (R)</button>' +
       '<button type="button" class="btn say" data-action="hint" aria-label="힌트 듣기, 에이치 키">힌트 (H)</button>' +
       '<button type="button" class="btn primary say" id="nextBtn" data-action="next" ' + (S.answered ? "" : "hidden") + '>' + (last ? "열쇠 얻기" : "다음 자물쇠") + ' (N)</button></div></section>');
-    S.narr = (S.qi === 0 ? "자물쇠가 " + total + "개 있어요. " : "") + "자물쇠 " + (S.qi + 1) + "번. " + q.q + " 보기는 " + q.o.map(function (t, i) { return (i + 1) + "번, " + t; }).join(". ") + ".";
+    S.narr = (S.qi === 0 ? "자물쇠가 " + NATIVE[total] + " 개 있어요. " : "") + "자물쇠 " + SINO[S.qi + 1] + "번. " + q.q + " 보기는 " + q.o.map(function (t, i) { return OPTW[i] + ", " + spokenOpt(t); }).join(". ") + ".";
     focusEl(document.getElementById("h"));
     if (!S.answered) { if (q.sfx && !S.tried) sfxThenSpeak(q.sfx, S.narr); else speak(S.narr); }
     S.tried = true;
@@ -575,7 +606,7 @@
       var remaining = q.o.length - S.wrong.length;
       if (S.wrong.length >= 3 || remaining <= 1) {
         S.answered = true; refreshOpts();
-        var m = "아직 안 열려요. 괜찮아요. 정답은 " + (q.a + 1) + "번이에요. " + q.e;
+        var m = "아직 안 열려요. 괜찮아요. 정답은 " + OPTW[q.a] + "이에요. " + q.e;
         setFeedback(m, "bad"); revealNext();
         pickThen(i, "buzz", m + " 같이 짚어 봐요." + tail);
       } else if (S.hintLv < 3) {
@@ -643,7 +674,7 @@
   }
   var pickTok = 0;
   function pickThen(i, kind, text) {
-    var pre = (i + 1) + "번을 골랐어요.", my = ++pickTok;
+    var pre = OPTW[i] + "을 골랐어요.", my = ++pickTok;
     var fb = document.getElementById("fb"); if (fb) fb.textContent = pre + " " + text;
     announce(pre + " " + text);
     speak(pre).then(function () { if (my === pickTok && S.screen === "q") sfxThenSpeak(kind, text); });

@@ -16,6 +16,7 @@ import edge_tts
 HERE = pathlib.Path(__file__).resolve().parent
 PAGE = HERE.parent / "index.html"
 OLD_PAGE = HERE.parent / "3~5회차 진행중.html"  # 콤보 효과음을 꺼낼 때만 써요
+ESCAPE_PAGE = HERE.parent / "keyboard_escape_game.html"  # 키보드 탈출 게임 (말하는 문장을 따로 모아요)
 
 KO_VOICE = "ko-KR-SunHiNeural"
 EN_VOICE = "en-US-JennyNeural"
@@ -86,6 +87,44 @@ def collect(html):
     return ko_all, en_all
 
 
+# 키보드 탈출 게임은 말하기 전에 영어 약어를 한글 발음으로 바꿔요 (게임의 PRON 과 같은 표)
+PRON = {"ESC": "이에스씨", "TAB": "탭", "CAP": "캡스락", "SHI": "시프트", "SHIFT": "시프트", "CTR": "컨트롤", "CTRL": "컨트롤",
+        "ALT": "알트", "WIN": "윈도우", "ENT": "엔터", "ENTER": "엔터", "BAC": "백스페이스", "SPACE": "스페이스바",
+        "INS": "인서트", "DEL": "딜리트", "HOM": "홈", "END": "엔드", "PGU": "페이지 업", "PGD": "페이지 다운",
+        "PRT": "프린트 스크린", "SCR": "스크롤 락", "PAU": "포즈", "NUM": "넘 락", "FN": "에프엔", "APP": "메뉴 키",
+        "KEYBOARD": "키보드", "COMPUTER": "컴퓨터", "TYPEWRITER": "타이프라이터", "MONITOR": "모니터"}
+
+
+def pron_py(text):
+    t = re.sub(r"\b[A-Z]{2,}\b", lambda m: PRON.get(m.group(0), m.group(0)), text, flags=re.ASCII)
+    t = re.sub(r"[·…]", " ", t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def skip_early_sessions(html):
+    # 1~4회는 이미 끝난 회차라서 음성을 만들지 않아요 (문제 데이터와 미션 데이터의 1~4회 부분을 뺌)
+    for start, end in ((r"\{ n: 1,", r"\{ n: 5,"), (r'\n\s*"1": \[', r'\n\s*"5": \['), (r'\n\s*"1": \{', r'\n\s*"5": \{')):
+        a = re.search(start, html)
+        b = re.search(end, html[a.end():]) if a else None
+        if a and b:
+            html = html[:a.start()] + html[a.end() + b.start():]
+    return html
+
+
+def collect_escape(html):
+    # 게임이 말하는 한글 문장: 큰따옴표와 작은따옴표 안의 한글 문자열 전부
+    found = [x for x in re.findall(r'"([^"\n]*)"', html) if re.search(r"[가-힣]", x)]
+    found += [x for x in re.findall(r"'([^'\n]*)'", html) if re.search(r"[가-힣]", x)]
+    # 버튼 글자처럼 HTML 태그 사이에 있는 한글도 읽어요
+    found += [x.strip() for x in re.findall(r">([^<>\n]*[가-힣][^<>\n]*)<", html)]
+    return sorted(set(found))
+
+
+def clue_strings(html):
+    # 1~4회 줄거리 중 5회 이후가 "지난 이야기"로 읽는 문장은 남겨요
+    return [x for x in re.findall(r'"clue": "([^"]*)"', html) if re.search(r"[가-힣]", x)]
+
+
 def make_sfx():
     # 콤보 효과음은 예전 파일 안에 base64 로 들어 있어요. mp3 로 꺼내 둬요.
     import base64
@@ -130,6 +169,9 @@ async def make_one(sem, text, voice, path):
 async def main():
     html = PAGE.read_text(encoding="utf-8")
     ko_all, en_all = collect(html)
+    # 키보드 탈출 게임의 문장 (영어타자 페이지와 같은 음성 파일 목록에 넣어요)
+    esc_html = ESCAPE_PAGE.read_text(encoding="utf-8") if ESCAPE_PAGE.exists() else ""
+    esc_ko = sorted(set(collect_escape(skip_early_sessions(esc_html)) + clue_strings(esc_html)))
     # 옛 5회차 파일의 영어 문장도 같은 음성(Jenny)으로 만들어요
     if OLD_PAGE.exists():
         old_ko, old_en = collect(OLD_PAGE.read_text(encoding="utf-8"))
@@ -147,6 +189,31 @@ async def main():
         rel = name_for(text, "ko")
         manifest[text] = rel
         jobs.append(make_one(sem, text, KO_VOICE, HERE.parent / rel))
+    # 게임은 문장을 쉼표와 마침표 단위 조각으로 나눠서 읽어요. 조각마다 음성을 만들어요.
+    # 게임은 한 자리 수를 한글로 읽어요 (2 -> 이)
+    sino_digits = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"]
+    def ko_digits(t):
+        return re.sub(r"(?<!\d)[1-9](?!\d)", lambda m: sino_digits[int(m.group())], t)
+    esc_pieces = set(ko_digits(x) for x in esc_ko)
+    for text in esc_ko:
+        for piece in re.split(r"[.!?,]\s*", text):
+            piece = ko_digits(piece.strip())
+            if piece and re.search(r"[가-힣]", piece):
+                esc_pieces.add(piece)
+    esc_pieces |= {sino_digits[n] + "회" for n in range(1, 10)}
+    # 자물쇠 화면이 이어 붙여 읽는 문장 (NATIVE, SINO 표와 같은 낱말)
+    native = ["", "하나", "둘", "셋", "넷", "다섯", "여섯", "일곱", "여덟", "아홉", "열"]
+    sino = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구", "십"]
+    esc_pieces |= {"자물쇠가 %s 개 있어요" % native[n] for n in range(1, 11)}
+    esc_pieces |= {"자물쇠 %s번" % sino[n] for n in range(1, 11)}
+    esc_pieces |= set(sino[1:]) | {"일번", "이번", "삼번", "사번", "보기는", "틀린 보기예요", "열리는 보기예요"}
+    esc_pieces |= {w + "을 골랐어요" for w in ["일번", "이번", "삼번", "사번"]} | {"정답은 " + w + "이에요" for w in ["일번", "이번", "삼번", "사번"]}
+    for text in sorted(esc_pieces):
+        if text in manifest:
+            continue  # 영어타자 페이지와 같은 문장은 이미 있어요
+        rel = name_for(text, "ko")
+        manifest[text] = rel
+        jobs.append(make_one(sem, pron_py(text), KO_VOICE, HERE.parent / rel))
     for text in en_all:
         rel = name_for("EN|" + text, "en")
         manifest["EN|" + text] = rel
