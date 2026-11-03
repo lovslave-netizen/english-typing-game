@@ -463,6 +463,7 @@
     }
     st.fixed.push(k);
     st.combo = 0; st.streak = 0; st.pitch = 0;   // 고친 뒤에는 콤보를 처음부터 다시 셉니다
+    quizCount = 0;   // 질문에 답하면 보너스 퀴즈 세기도 0부터 다시 (5문장 뒤에 나와요)
     closeMenu();
     st.idx = 0; st.raw = []; st.wrong = false; st.rcD = -1; st.rcE = -1;
     var parts = [ko(OPT_NAMES[i] + "이 맞았어요."), ko(BUG[k].now), ko("명령:"), ko(BUG[k].cmd), ko(KNUM[version()] + " 버전을 열었어요.")];
@@ -476,6 +477,7 @@
   function goBackVersion() {
     if (nNew() === 0) { speakSeq([ko("처음 버전이에요. 더 돌아갈 수 없어요.")]); return; }
     st.fixed.pop(); closeMenu();
+    quizCount = 0;
     st.combo = 0; st.streak = 0; st.pitch = 0;
     st.idx = 0; st.raw = []; st.wrong = false; st.rcD = -1; st.rcE = -1;
     $("fb").textContent = "버전 " + version() + "으로 돌아왔어요.";
