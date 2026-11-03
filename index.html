@@ -405,7 +405,7 @@
     stopClock();
     $("fb").textContent = "";
     render();
-    speakSeq((lead || []).concat([ko("다음 문장이에요.")], sentParts(), [clockCb()]));
+    speakSeq((lead || []).concat([ko("다음 문장이에요.")], sentParts()));   // 시간은 첫 키를 누를 때 시작해요
   }
   // 엔터: 다 친 문장은 여기서 끝나요. 아직 다 못 쳤으면 알려 줘요.
   var ROUND_LEN = 10;   // 한 게임은 문장 10개
@@ -438,6 +438,7 @@
   // 백스페이스: 커서(좌우 화살표)가 있으면 그 글자를, 없으면 맨 끝 글자를 지워요
   function deleteLetter() {
     if (!st.raw.length) return;
+    st.pitch = 0;   // 지우는 건 실수를 고치는 거라서 맞힌 소리 높이도 처음으로 돌아가요
     var chars = st.raw.map(function (x) { return x.ch; });
     var p = (st.cA && st.cA.area === "typed") ? st.cA.pos : chars.length - 1;
     if (p < 0 || p >= chars.length) p = chars.length - 1;
@@ -644,7 +645,7 @@
     $("start").hidden = true; $("app").hidden = false;
     render();
     $("fb").textContent = "";
-    speakSeq([ko("단축키를 들으려면 칠 번 키를 누르세요."), ko("문장을 들려 드릴게요.")].concat(sentParts(), [clockCb()]));
+    speakSeq([ko("단축키를 들으려면 칠 번 키를 누르세요."), ko("문장을 들려 드릴게요.")].concat(sentParts()));   // 시간은 첫 키를 누를 때 시작해요
     if (koMode) $("hangulInput").focus();
   }
 
