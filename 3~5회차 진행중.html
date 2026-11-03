@@ -286,13 +286,9 @@
   function speedRate() { return SPEEDS[speedIdx].r; }
   function changeSpeed(d) {
     var next = speedIdx + d;
-    if (next < 0 || next >= SPEEDS.length) {
-      speakSeq([ko(SPEEDS[speedIdx].n + " 속도예요. " + (d > 0 ? "더 빨라질 수 없어요." : "더 느려질 수 없어요."))]);
-      return;
-    }
+    if (next < 0 || next >= SPEEDS.length) return;   // 말하지 않아요 (문장 읽는 중에 끊기지 않게)
     speedIdx = next;
     render();
-    speakSeq([ko(SPEEDS[speedIdx].n + " 속도예요.")]);
   }
   // 지금 재생 중인 음성 파일
   var curAudio = null;
@@ -431,7 +427,7 @@
     if (allDone()) parts.push(ko("6개를 모두 고쳤어요. 여기까지 끝!"));
     $("fb").textContent = done + " 버전 " + version() + "을 열었어요.";
     render();
-    speakSeq(parts.concat([enSent(SENT[st.si]), clockCb()]));
+    speakSeq(parts.concat([enSent(SENT[st.si])]));   // 시간은 첫 키를 누를 때 시작해요
   }
 
   // 뒤로 가기: 마지막으로 고친 것을 되돌려 이전 버전으로 가요
@@ -499,7 +495,8 @@
     st.idx = 0; st.raw = []; st.wrong = false; st.rcD = -1; st.rcE = -1;
     $("fb").textContent = "";
     render();
-    speakSeq((lead || []).concat([ko("다음 문장이에요."), enSent(SENT[st.si]), clockCb()]));
+    st.t0 = 0; stopClock();   // 다음 문장은 첫 키를 누를 때 시간을 다시 재요
+    speakSeq((lead || []).concat([ko("다음 문장이에요."), enSent(SENT[st.si])]));
   }
 
   /* 5회 H3: 틀린 글자 없이 한 문장을 맞춰 엔터를 누르면 1문장 성공. 3문장 연속부터 콤보! */
@@ -553,6 +550,7 @@
     var s = SENT[st.si];
     if (st.cA && st.cA.area === "typed" && st.raw.length) { insertAtCursorOld(ch); return; }
     if (complete()) { $("fb").textContent = "문장을 다 쳤어요. 엔터를 누르면 다음 문장이에요."; speakSeq([ko("문장을 다 쳤어요. 엔터를 누르면 다음 문장이에요.")]); return; }
+    if (!st.t0) startClock();   // 첫 글자를 칠 때부터 시간을 재요
     var exp = s.charAt(st.idx), ok = ch.toLowerCase() === exp.toLowerCase();
     st.raw.push({ ch: ch, ok: ok });
     st.idx++;   // 틀려도 다음 칸으로 넘어가요. 틀린 글자는 백스페이스로 지울 수 있어요.
@@ -591,6 +589,7 @@
     if (parts.length) speakSeq(parts);
   }
   function startClock() {
+    if (st.t0 && st.clockOn) return;   // 이미 재고 있으면 다시 시작하지 않아요
     st.t0 = Date.now(); st.clockOn = true;
     clearInterval(st.tickTimer);
     st.tickTimer = setInterval(function () {
@@ -758,7 +757,7 @@
     st.si = 0; st.idx = 0; st.raw = []; st.wrong = false; st.combo = 0; st.streak = 0; st.pitch = 0; st.rcD = -1; st.rcE = -1; setSession(n); loadCombo();
     render();
     $("fb").textContent = "버튼 '고칠 것 고르기'를 누르면 고칠 것이 나와요.";
-    speakSeq([ko("단축키를 들으려면 칠 번 키를 누르세요."), ko("문장을 들려 드릴게요."), enSent(SENT[0]), clockCb()]);
+    speakSeq([ko("단축키를 들으려면 칠 번 키를 누르세요."), ko("문장을 들려 드릴게요."), enSent(SENT[0])]);
   }
   $("btnStart").addEventListener("click", function () { startGame(5); });
   $("hub3").addEventListener("click", function () { startGame(3); });
