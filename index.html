@@ -33,13 +33,20 @@
     <p id="startMsg" role="status" aria-live="polite">엔터를 누르면 시작합니다.</p>
     <button type="button" class="btn primary" id="btnStart">영어 타자 연습</button>
     <button type="button" class="btn" id="btnKorean">한글 타자 연습</button>
+    <button type="button" class="btn" id="btnScoreStart">점수보기</button>
+    <div id="startBoard" hidden>
+      <h2>영어 점수판 (상위 50명)</h2>
+      <ol id="boardEn"></ol>
+      <h2>한글 점수판 (상위 50명)</h2>
+      <ol id="boardKo"></ol>
+    </div>
   </section>
 
   <section id="app" aria-label="게임" hidden>
     <main>
       <p class="sent" id="sent" aria-label="따라 칠 문장"></p>
       <p class="typed" id="typed" aria-label="친 글자"></p>
-      <textarea id="hangulInput" aria-label="한글 입력" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"></textarea>
+      <textarea id="hangulInput" aria-label="한글 입력" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;font-size:16px"></textarea>
       <p class="meta" id="cursor" aria-live="polite"></p>
       <p class="meta" id="scoreline" aria-live="polite"></p>
       <p class="meta" id="speedline"></p>
@@ -131,7 +138,7 @@
     var part = koMode ? { lang: "ko" } : { lang: "en", sent: true };
     var body = s.charAt(s.length - 1) === "." ? s.slice(0, -1) : s;
     var out = [{ t: body, lang: part.lang, sent: part.sent, slow: true }];
-    if (body !== s) out.push({ t: "쩜!", lang: "ko", slow: true });
+    if (body !== s) { out[0].pause = 250; out.push({ t: "쩜!", lang: "ko", slow: true }); }
     return out;
   }
   function complete() { return st.idx >= TGT()[st.si].length; }
@@ -228,6 +235,8 @@
   }
   var curAudio = null;
   function stopAudio() { if (curAudio) { try { curAudio.pause(); } catch (e) {} curAudio = null; } }
+  // 조각에 pause(밀리초)가 있으면 그만큼 쉬고 다음 조각을 읽어요
+  function after(p, fn) { if (p.pause) setTimeout(fn, p.pause); else fn(); }
   // 음성 파일은 미리 불러 두고 다시 쓰면 바로 나와요
   var audioCache = {};
   function audioFor(src) {
@@ -235,7 +244,7 @@
     return audioCache[src];
   }
   function playFile(src, rate, done) {
-    var a = audioFor(src), fin = false; a.currentTime = 0;
+    var a = new Audio(src), fin = false;   // 재생할 때마다 새로 만들어요 (같은 객체를 재사용하면 다음 조각으로 못 넘어가요)
     function end(ok) { if (fin) return; fin = true; curAudio = null; done(ok); }
     a.playbackRate = rate;
     a.onended = function () { end(true); };
@@ -263,7 +272,7 @@
       var rate = (p.slow ? SENT_RATE : speedRate()) * (p.r || 1);
       var src = fileFor(p);
       if (src) {
-        playFile(src, rate, function (ok) { if (ok) next(i + 1); else speakMachine(p, i, my, next, rate); });
+        playFile(src, rate, function (ok) { if (ok) after(p, function () { next(i + 1); }); else speakMachine(p, i, my, next, rate); });
         return;
       }
       speakMachine(p, i, my, next, rate);
@@ -488,17 +497,37 @@
   // 점수판 (구글 시트, Apps Script 웹앱). 주소는 README 3단계에서 받아 여기에 넣어요.
   var SCORE_URL = "https://script.google.com/macros/s/AKfycbypN7HZQvRzpJ_uG6IkeiGSfCz03VE_oA0zLO0FPS98CGVLrLhlzE7hRrk_sJr_3NUS4Q/exec";
   function hasScoreUrl() { return SCORE_URL.indexOf("https://") === 0; }
-  function loadBoard() {
-    return fetch(SCORE_URL).then(function (r) { return r.json(); }).then(function (d) {
-      var top = d.top || [], box = $("board");
-      box.textContent = "";
-      top.forEach(function (t) {
-        var li = document.createElement("li");
-        li.textContent = t.name + " · " + t.score + "점";   // 이름은 글자로만 넣어요
-        box.appendChild(li);
-      });
-      return top;
+  // 점수판은 영어 타자와 한글 타자를 따로 모아요
+  function scoreMode() { return koMode ? "한글" : "영어"; }
+  // mode 를 안 주면 지금 치는 타자(영어/한글)의 점수판을 가져와요
+  function fetchTop(mode) {
+    return fetch(SCORE_URL + "?mode=" + encodeURIComponent(mode || scoreMode())).then(function (r) { return r.json(); }).then(function (d) { return d.top || []; });
+  }
+  function fillBoard(box, top) {
+    box.textContent = "";
+    top.forEach(function (t) {
+      var li = document.createElement("li");
+      li.textContent = t.name + " · " + t.score + "점";   // 이름은 글자로만 넣어요
+      box.appendChild(li);
     });
+  }
+  function loadBoard(mode) {
+    return fetchTop(mode).then(function (top) { fillBoard($("board"), top); return top; });
+  }
+  // 첫 화면의 점수보기: 영어 점수판과 한글 점수판을 따로 보여 주고 읽어요
+  function showStartScores() {
+    if (!hasScoreUrl()) { say("점수판 주소가 아직 없어요."); return; }
+    say("점수를 불러오고 있어요.");
+    Promise.all([fetchTop("영어"), fetchTop("한글")]).then(function (both) {
+      fillBoard($("boardEn"), both[0]); fillBoard($("boardKo"), both[1]);
+      $("startBoard").hidden = false;
+      var parts = [ko("영어 점수판")];
+      both[0].forEach(function (t, i) { parts.push(ko((i + 1) + "등"), ko(t.name), ko(t.score + "점")); });
+      parts.push(ko("한글 점수판"));
+      both[1].forEach(function (t, i) { parts.push(ko((i + 1) + "등"), ko(t.name), ko(t.score + "점")); });
+      if (!both[0].length && !both[1].length) parts = [ko("아직 저장된 점수가 없어요.")];
+      speakSeq(parts);
+    }).catch(function () { say("점수판을 불러오지 못했어요."); });
   }
   function speakBoard() {
     if (!hasScoreUrl()) { say("점수판 주소가 아직 없어요."); return; }
@@ -515,7 +544,7 @@
     $("btnSave").disabled = true;
     say("점수를 저장하고 있어요.");
     fetch(SCORE_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ name: name, score: st.score }) })
+      body: JSON.stringify({ name: name, score: st.score, mode: scoreMode() }) })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (!d.ok) throw new Error("save");
@@ -684,11 +713,14 @@
     });
     $("quiz").hidden = false;
     var speech = [ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)];
+    speech[0].pause = 300; speech[1].pause = 300; speech[2].pause = 600;
     quizState.speech = speech;   // 1번 키를 누르면 이 문장을 다시 읽어요
-    var parts = (lead || []).concat(speech);
-    
-    opts.forEach(function (o, i) { speech.push(ko(["에이", "에스", "디", "에프"][i]), enWord(o.en)); });
+    opts.forEach(function (o, i) {
+      speech.push(ko(["에이", "에스", "디", "에프"][i]), enWord(o.en));
+      speech[speech.length - 2].pause = 250; speech[speech.length - 1].pause = 900;
+    });
     speech.push(ko("일번은 에이, 이번은 에스, 삼번은 디, 사번은 에프를 누르면 선택할 수 있어요."));
+    var parts = (lead || []).concat(speech);   // 보기까지 다 채운 뒤에 읽을 목록을 만들어요
     $("fb").textContent = "";
     speakSeq(parts);
   }
@@ -713,11 +745,16 @@
     st.combo = 0; st.streak = 0; st.pitch = 0; st.score = 0; st.bonus = 0; st.t0 = 0;
     st.sent = 0; st.perfect = 0; st.over = false; $("over").hidden = true;
     stopClock();
-    $("start").hidden = true; $("app").hidden = false;
+    $("start").hidden = true; $("app").hidden = false; $("startBoard").hidden = true;
     render();
     $("fb").textContent = "";
     speakSeq([ko("단축키를 들으려면 칠 번 키를 누르세요."), ko("문장을 들려 드릴게요.")].concat(sentParts()));   // 시간은 첫 키를 누를 때 시작해요
-    if (koMode) $("hangulInput").focus();
+    focusTyping();
+  }
+  // 폰에서 키보드가 올라오려면 글 입력칸이 선택되어 있어야 해요. 영어와 한글 모두 이 칸으로 받아요.
+  function focusTyping() {
+    if ($("app").hidden || st.over || quizState) return;
+    if (document.activeElement !== $("hangulInput")) $("hangulInput").focus();
   }
 
   /* 키 입력 */
@@ -726,11 +763,13 @@
   function paintStart() {
     $("btnStart").classList.toggle("primary", startChoice === 0);
     $("btnKorean").classList.toggle("primary", startChoice === 1);
+    $("btnScoreStart").classList.toggle("primary", startChoice === 2);
   }
+  var START_NAMES = ["영어 타자 연습", "한글 타자 연습", "점수보기"];
   function pickStart(d) {
-    startChoice = (startChoice + d + 2) % 2;
+    startChoice = (startChoice + d + 3) % 3;
     paintStart();
-    say(startChoice === 0 ? "영어 타자 연습" : "한글 타자 연습");
+    say(START_NAMES[startChoice]);
   }
   // 처음 화면으로 돌아가요 (8)
   function goHome() {
@@ -738,13 +777,14 @@
     koMode = false;
     $("hangulInput").blur();
     $("app").hidden = true; $("over").hidden = true; st.over = false;
-    $("start").hidden = false;
+    $("start").hidden = false; $("startBoard").hidden = true;
     startChoice = 0; paintStart();
     speakSeq([ko("영어 타자 연습과 한글 타자 연습 중에서 골라 주세요.")]);
   }
   function confirmStart() {
     if (startChoice === 0) startGame();
-    else startGame("ko");
+    else if (startChoice === 1) startGame("ko");
+    else showStartScores();
   }
   // 처음 화면 안내: 브라우저는 사용자가 한 번 누른 뒤에야 소리를 내게 해 줘요
   var introSaid = false;
@@ -763,7 +803,9 @@
     if (e.isComposing) return;   // 한글 조합 중에는 키를 가로채지 않아요
     if (quizState) {             // 퀴즈 중에는 1~4 번 키로 고르고, 다른 키는 무시해요
       if (e.key === "1") { e.preventDefault(); speakSeq(quizState.speech); return; }   // 1번: 퀴즈 다시 듣기
+      // 한글 자판에서는 ㅁㄴㅇㄹ 이 같은 자리(A S D F)라서 실제 키 자리(code)로도 골라요
       var qi = { a: 0, s: 1, d: 2, f: 3 }[e.key.toLowerCase()];
+      if (qi === undefined) qi = { KeyA: 0, KeyS: 1, KeyD: 2, KeyF: 3 }[e.code];
       if (qi !== undefined) { e.preventDefault(); answerQuiz(qi); return; }
       if (e.key === "=") { e.preventDefault(); changeSpeed(1); return; }   // 퀴즈 중에도 속도는 바꿀 수 있어요
       if (e.key === "-") { e.preventDefault(); changeSpeed(-1); return; }
@@ -812,10 +854,14 @@
       // 단축키가 아닌 키를 처음 치는 순간부터 시간을 재요
       if (!st.t0 && !complete()) startClock();
       // 한글 모드에서는 숨겨진 입력칸이 글자를 받아요
-      if (koMode) { if (document.activeElement !== $("hangulInput")) $("hangulInput").focus(); return; }
+      // 한글 모드와 폰에서는 숨겨진 입력칸이 글자를 받아요 (폰은 키 이름이 안 와서 입력칸으로 받아요)
+      if (koMode) { focusTyping(); return; }
       e.preventDefault(); typeKey(e.key);
     }
   });
+
+  // 폰에서 화면을 눌러도 키보드가 다시 올라오게 해요
+  document.addEventListener("click", focusTyping);
 
   // 한글 입력: 숨겨진 입력칸의 글자를 한 글자씩 처리해요
   // 조합 중인 글자를 미리 알려 줘요: 맞으면 딩 + 글자 이름, 틀리면 땡
@@ -836,7 +882,7 @@
     var el = $("hangulInput"), t = el.value;
     if (!t) return;
     el.value = "";
-    if (!koMode) return;
+    if (!st.t0 && !complete()) startClock();   // 폰 키보드로 친 첫 글자부터 시간을 재요
     Array.from(t).forEach(function (c) {
       typeKey(c, c === lastPreview);   // 미리 알려 준 글자는 다시 말하지 않아요
     });
@@ -848,6 +894,7 @@
   /* 버튼 */
   $("btnStart").addEventListener("click", function () { startChoice = 0; paintStart(); startGame(); });
   $("btnKorean").addEventListener("click", function () { startChoice = 1; paintStart(); confirmStart(); });
+  $("btnScoreStart").addEventListener("click", function () { startChoice = 2; paintStart(); showStartScores(); });
   $("btnAgain").addEventListener("click", function () { ctx(); readSentence(); });
   $("btnScore").addEventListener("click", function () { ctx(); readScore(); });
   $("btnStop").addEventListener("click", function () { stopAll(); });

@@ -325,6 +325,8 @@
   var curAudio = null;
   function stopAudio() { if (curAudio) { try { curAudio.pause(); } catch (e) {} curAudio = null; } }
   // 미리 만든 파일을 재생해요. 끝나면 done(true), 못 읽으면 done(false)
+  // 조각에 pause(밀리초)가 있으면 그만큼 쉬고 다음 조각을 읽어요
+  function after(p, fn) { if (p.pause) setTimeout(fn, p.pause); else fn(); }
   // 음성 파일은 미리 불러 두고 다시 쓰면 바로 나와요
   var audioCache = {};
   function audioFor(src) {
@@ -332,7 +334,7 @@
     return audioCache[src];
   }
   function playFile(src, rate, done) {
-    var a = audioFor(src), fin = false; a.currentTime = 0;
+    var a = new Audio(src), fin = false;   // 재생할 때마다 새로 만들어요 (같은 객체를 재사용하면 다음 조각으로 못 넘어가요)
     function end(ok) { if (fin) return; fin = true; curAudio = null; done(ok); }
     a.playbackRate = rate;
     a.onended = function () { end(true); };
@@ -363,7 +365,7 @@
       var src = fileFor(p);
       if (src) {
         // 파일을 못 읽으면 기계 음성으로 이어서 읽어요
-        playFile(src, rate, function (ok) { if (ok) next(i + 1); else speakMachine(p, i, my, next, rate); });
+        playFile(src, rate, function (ok) { if (ok) after(p, function () { next(i + 1); }); else speakMachine(p, i, my, next, rate); });
         return;
       }
       speakMachine(p, i, my, next, rate);
@@ -578,11 +580,14 @@
     });
     $("quiz").hidden = false;
     var speech = [ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)];
+    speech[0].pause = 300; speech[1].pause = 300; speech[2].pause = 600;
     quizState.speech = speech;   // 1번 키를 누르면 이 문장을 다시 읽어요
-    var parts = (lead || []).concat(speech);
-    
-    opts.forEach(function (o, i) { speech.push(ko(["에이", "에스", "디", "에프"][i]), enWord(o.en)); });
+    opts.forEach(function (o, i) {
+      speech.push(ko(["에이", "에스", "디", "에프"][i]), enWord(o.en));
+      speech[speech.length - 2].pause = 250; speech[speech.length - 1].pause = 900;
+    });
     speech.push(ko("일번은 에이, 이번은 에스, 삼번은 디, 사번은 에프를 누르면 선택할 수 있어요."));
+    var parts = (lead || []).concat(speech);   // 보기까지 다 채운 뒤에 읽을 목록을 만들어요
     $("fb").textContent = "";
     speakSeq(parts);
   }

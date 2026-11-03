@@ -113,7 +113,7 @@ async def make_one(sem, text, voice, path):
                 await edge_tts.Communicate(text, voice).save(str(path))
                 # 앞뒤 빈 소리를 잘라서 바로 나오게
                 import subprocess, os
-                ff = os.path.expandvars(r'%LOCALAPPDATA%\JYinfmpeg.exe')
+                ff = os.path.join(os.environ['LOCALAPPDATA'], 'JY', 'bin', 'ffmpeg.exe')
                 flt = ('silenceremove=start_periods=1:start_silence=0.03:start_threshold=-45dB,'
                        'areverse,silenceremove=start_periods=1:start_silence=0.03:start_threshold=-45dB,areverse')
                 tmp = path.with_suffix('.trim.mp3')
