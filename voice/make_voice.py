@@ -71,7 +71,9 @@ def collect(html):
     board = ["상위 %d명을 읽어 드릴게요." % n for n in range(1, 51)] + ["%d등" % n for n in range(1, 51)]
     ko_all = sorted(set(ko_lits + numbers + extra + words + board + ["정답은"]))
     # 마침표로 끝나는 문장은 마침표 앞까지도 따로 만들어요 (끝에 "쩜!"을 붙여 읽으려고)
-    en_all = sorted(set(sents + en_names + [s[:-1] for s in sents if s.endswith(".")]))
+    # 아이템 퀴즈의 영어 단어 (QUIZ 목록의 en: "...")
+    quiz_en = re.findall(r'\ben: "([^"]+)"', script)
+    en_all = sorted(set(sents + en_names + quiz_en + [s[:-1] for s in sents if s.endswith(".")]))
     ko_all = sorted(set(ko_all + [s[:-1] for s in ko_all if s.endswith(".")]))
     return ko_all, en_all
 

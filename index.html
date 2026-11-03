@@ -43,6 +43,11 @@
       <p class="meta" id="speedline"></p>
       <div class="fb" id="fb" role="status" aria-live="polite"></div>
 
+      <section id="quiz" aria-label="아이템 퀴즈" hidden style="border:4px solid currentColor;border-radius:14px;padding:12px 16px;margin:12px 0">
+        <p id="quizQ" role="status" aria-live="polite" style="font-size:26px;font-weight:700"></p>
+        <div id="quizOpts"></div>
+      </section>
+
       <div class="bar" role="group" aria-label="기본 버튼">
         <button type="button" class="btn" id="btnAgain">문장 다시 듣기 (1)</button>
         <button type="button" class="btn" id="btnScore">점수 듣기 (2)</button>
@@ -275,6 +280,7 @@
   function stopAll() { tok++; stopAudio(); try { if (synth) synth.cancel(); } catch (e) {} }
   function ko(t) { return { t: t, lang: "ko" }; }
   function enSent(t) { return { t: t, lang: "en", sent: true }; }
+  function en(t) { return { t: t, lang: "en" }; }
   // 글자 하나는 한국어 이름으로 읽어요 (A는 "에이", I는 "아이"). 기호는 기호 이름으로 읽어요.
   function charParts(ch) {
     var u = ch.toUpperCase();
@@ -419,6 +425,8 @@
     if (perfect) st.perfect++;
     render();
     if (st.sent >= ROUND_LEN) { endGame(lead); return; }
+    quizCount++;
+    if (quizCount >= quizEvery) { startQuiz(lead); return; }   // 2~3문장마다 아이템 퀴즈
     changeSentence(1, lead);
     $("fb").textContent = lead.map(function (x) { return x.t; }).join(" ");
   }
@@ -634,8 +642,53 @@
     for (var n = 0; n < order.length; n++) { SENT[n] = en[n]; KSENT[n] = kr[n]; }
   }
   // 한글 입력 모드를 켜고 끄면서 게임을 시작해요 ("ko" 면 한글로 치기)
+  /* 아이템 퀴즈: 2~3문장마다 랜덤으로 영어 단어 퀴즈. 맞히면 200점, 틀리면 100점 */
+  var QUIZ = [
+    { ko: "고양이", en: "cat" }, { ko: "개", en: "dog" }, { ko: "사과", en: "apple" }, { ko: "책", en: "book" },
+    { ko: "공", en: "ball" }, { ko: "태양", en: "sun" }, { ko: "물", en: "water" }, { ko: "학교", en: "school" },
+    { ko: "집", en: "house" }, { ko: "나무", en: "tree" }, { ko: "빨간색", en: "red" }, { ko: "파란색", en: "blue" }
+  ];
+  var OPT_NAMES = ["일번", "이번", "삼번", "사번"];
+  var quizState = null, quizCount = 0, quizEvery = 2 + Math.floor(Math.random() * 2);
+  function shuffleArr(a) {
+    return a.map(function (x) { return [Math.random(), x]; }).sort(function (p, q) { return p[0] - q[0]; }).map(function (p) { return p[1]; });
+  }
+  function startQuiz(lead) {
+    var q = QUIZ[Math.floor(Math.random() * QUIZ.length)];
+    var others = shuffleArr(QUIZ.filter(function (x) { return x !== q; })).slice(0, 3);
+    var opts = shuffleArr([q].concat(others));
+    quizState = { q: q, opts: opts, ans: opts.indexOf(q) };
+    quizCount = 0; quizEvery = 2 + Math.floor(Math.random() * 2);
+    $("quizQ").textContent = "아이템 퀴즈! 이 말을 영어로 하면 무엇일까요? " + q.ko;
+    var box = $("quizOpts"); box.textContent = "";
+    opts.forEach(function (o, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "btn";
+      b.textContent = (i + 1) + "번. " + o.en;
+      b.addEventListener("click", function () { ctx(); answerQuiz(i); });
+      box.appendChild(b);
+    });
+    $("quiz").hidden = false;
+    var parts = (lead || []).concat([ko("아이템 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)]);
+    opts.forEach(function (o, i) { parts.push(ko(OPT_NAMES[i]), en(o.en)); });
+    $("fb").textContent = "";
+    speakSeq(parts);
+  }
+  function answerQuiz(i) {
+    if (!quizState) return;
+    var right = i === quizState.ans, answer = quizState.opts[quizState.ans];
+    quizState = null;
+    $("quiz").hidden = true;
+    st.score += right ? 200 : 100;
+    var res = right ? [ko("정답이에요!"), ko("200점")] : [ko("아쉬워요."), ko("정답은"), en(answer.en), ko("100점")];
+    render();
+    changeSentence(1, res);
+  }
+  function closeQuiz() { quizState = null; quizCount = 0; $("quiz").hidden = true; }
+
   function startGame(mode) {
     ctx();
+    closeQuiz();
     koMode = mode === "ko";
     shuffleSent();
     st.si = 0; st.idx = 0; st.raw = []; st.cA = null; st.wrong = false;
@@ -663,7 +716,7 @@
   }
   // 처음 화면으로 돌아가요 (8)
   function goHome() {
-    stopAll(); stopClock();
+    stopAll(); stopClock(); closeQuiz();
     koMode = false;
     $("hangulInput").blur();
     $("app").hidden = true; $("over").hidden = true; st.over = false;
@@ -690,6 +743,10 @@
 
   document.addEventListener("keydown", function (e) {
     if (e.isComposing) return;   // 한글 조합 중에는 키를 가로채지 않아요
+    if (quizState) {             // 퀴즈 중에는 1~4 번 키로 고르고, 다른 키는 무시해요
+      if (/^[1-4]$/.test(e.key)) { e.preventDefault(); answerQuiz(+e.key - 1); }
+      return;
+    }
     if (st.over) {               // 게임이 끝난 화면: 이름 칸에 쓰는 중이면 그대로 두고, 엔터는 다시 하기, 8은 처음 화면
       if (e.target && e.target.tagName === "INPUT") return;
       if (e.key === "Enter") { e.preventDefault(); startGame(koMode ? "ko" : "en"); return; }
