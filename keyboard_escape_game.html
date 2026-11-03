@@ -1,0 +1,2590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>사라진 황금 타자기 - 키보드 탐험대</title>
+<style>
+  :root {
+    --bg: #fffdf5; --fg: #111111; --muted: #3d3d3d; --card: #ffffff; --line: #222222;
+    --accent: #0b4fd6; --accent-fg: #ffffff;
+    --ok: #0a6b34; --ok-bg: #d9f5e3; --bad: #b3261e; --bad-bg: #fde3e1; --focus: #ff8f00;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1419; --fg: #f7f7f7; --muted: #d6d6d6; --card: #1a222c; --line: #e9e9e9;
+      --accent: #7fb0ff; --accent-fg: #0a1a33;
+      --ok: #6ff0a0; --ok-bg: #123a24; --bad: #ff8a80; --bad-bg: #4a1a17; --focus: #ffd54a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1419; --fg: #f7f7f7; --muted: #d6d6d6; --card: #1a222c; --line: #e9e9e9;
+    --accent: #7fb0ff; --accent-fg: #0a1a33;
+    --ok: #6ff0a0; --ok-bg: #123a24; --bad: #ff8a80; --bad-bg: #4a1a17; --focus: #ffd54a;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+    font-size: 22px; line-height: 1.6;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 30px; margin: 8px 0 12px; }
+  h2 { font-size: 32px; line-height: 1.4; margin: 14px 0; }
+  h2:focus { outline: none; }
+  p { margin: 10px 0; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+  button { font: inherit; color: inherit; }
+  .btn {
+    font-size: 22px; font-weight: 700; padding: 12px 20px; min-height: 56px;
+    background: var(--card); color: var(--fg); border: 3px solid var(--line); border-radius: 12px; cursor: pointer;
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  .btn:hover, .btn:focus-visible, .opt:hover, .opt:focus-visible { outline: 5px solid var(--focus); outline-offset: 2px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0; }
+  .meta { color: var(--muted); font-size: 20px; margin: 0; }
+  .opts { margin: 14px 0; }
+  .opt {
+    display: flex; align-items: center; gap: 16px; width: 100%; min-height: 70px;
+    padding: 12px 18px; margin: 12px 0; font-size: 26px; text-align: left; cursor: pointer;
+    background: var(--card); color: var(--fg); border: 3px solid var(--line); border-radius: 14px;
+  }
+  .opt .num {
+    flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--accent); color: var(--accent-fg); font-weight: 800; font-size: 24px;
+  }
+  .opt .txt { flex: 1; }
+  .opt.wrong { background: var(--bad-bg); border-color: var(--bad); }
+  .opt.wrong::after { content: "틀림"; font-weight: 800; color: var(--bad); }
+  .opt.right { background: var(--ok-bg); border-color: var(--ok); }
+  .opt.right::after { content: "정답"; font-weight: 800; color: var(--ok); }
+  .fb { min-height: 64px; padding: 12px 16px; border-left: 8px solid var(--accent); background: var(--card); border-radius: 8px; margin: 14px 0; }
+  .fb.ok { border-left-color: var(--ok); }
+  .fb.bad { border-left-color: var(--bad); }
+  .hints { margin: 6px 0 0; padding-left: 28px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 14px 0; }
+  .grid .btn { text-align: left; }
+  .grid .btn.done { border-color: var(--ok); background: var(--ok-bg); }
+  .word { font-size: 30px; letter-spacing: 6px; font-weight: 800; margin: 8px 0 16px; }
+  .bigkey { font-size: 96px; font-weight: 900; text-align: center; margin: 10px 0; color: var(--accent); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  ul.keys { padding-left: 28px; }
+  ul.keys li { margin: 6px 0; }
+  .speedwrap { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 700; }
+  .speedwrap select { font: inherit; font-weight: 700; min-height: 56px; padding: 8px 12px; background: var(--card); color: var(--fg); border: 3px solid var(--line); border-radius: 12px; cursor: pointer; }
+  .speedwrap select:hover, .speedwrap select:focus-visible { outline: 5px solid var(--focus); outline-offset: 2px; }
+  h3 { font-size: 24px; margin: 14px 0 6px; }
+  .board { display: grid; gap: 4px; margin: 12px 0; width: max-content; max-width: 100%; }
+  .cell { width: 64px; height: 64px; border: 3px solid var(--line); border-radius: 10px; display: grid; place-items: center; font-size: 34px; background: var(--card); }
+  .cell.wall { background: var(--line); }
+  .cell.goal { border-color: var(--ok); background: var(--ok-bg); }
+  .prog { margin: 4px 0 8px; padding-left: 34px; min-height: 34px; }
+  .pad { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+  .pad .btn { min-width: 84px; }
+  .prog li.bad { color: var(--bad); font-weight: 800; }
+  .rule { font-size: 28px; font-weight: 800; padding: 14px 16px; border: 4px solid var(--accent); border-radius: 12px; margin: 12px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>사라진 황금 타자기 · 키보드 탐험대</h1>
+    <div class="bar" role="group" aria-label="설정">
+      <button type="button" class="btn say" id="btnBack" aria-label="뒤로 가기. 이전 화면으로 돌아가요">← 뒤로 가기</button>
+      <button type="button" class="btn say" id="btnReload" aria-label="새로고침. 지금 화면을 처음 상태로 다시 시작해요">새로고침</button>
+      <button type="button" class="btn say" id="btnTts" aria-pressed="true">음성 안내: 켜짐</button>
+      <button type="button" class="btn say" id="btnSfx" aria-pressed="true">효과음: 켜짐</button>
+      <label class="speedwrap" for="rateSel">읽는 속도 <select id="rateSel" class="say" data-say="읽는 속도 선택. 위아래 화살표로 바꿔요" aria-label="읽는 속도"><option value="0">0.8배 (느리게)</option><option value="1">1배</option><option value="2">1.2배 (기본)</option><option value="3">1.5배</option><option value="4">1.7배</option><option value="5">2배 (가장 빠르게)</option></select></label>
+      <label class="speedwrap" for="moveSel">이동 읽기 <select id="moveSel" class="say" data-say="로봇이 움직일 때 읽는 방법 선택. 위아래 화살표로 바꿔요" aria-label="이동 읽기"><option value="0">명령마다 짧게 (기본)</option><option value="1">한 칸마다 자세히</option><option value="2">소리만</option></select></label>
+      <button type="button" class="btn say" id="btnHelp">도움말</button>
+    </div>
+  </header>
+  <main id="main" aria-label="게임 화면"></main>
+  <div id="live" class="sr" role="status" aria-live="polite"></div>
+  <noscript><p>이 게임은 자바스크립트가 필요해요.</p></noscript>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ───────── 문제 데이터 ───────── */
+  var SESSIONS = [
+    { n: 1, t: "구성과 돌기 찾기", k: "T",
+      intro: "키보드 탐험대, 출발! 오늘은 키보드의 비밀 나침반, 돌기 세 개를 찾는 첫 방탈출이에요. 맞히면 철컥, 틀리면 삐 소리가 나고 힌트를 줄게요.",
+      qs: [
+        { q: "1보드에서 돌기가 있는 조각은 어느 줄에 있나요?", o: ["숫자줄", "윗줄", "가운뎃줄", "아랫줄"], a: 2,
+          h: ["CAP 조각이 맨 왼쪽에 있는 줄이에요. 아랫줄 바로 위예요.", "왼손 검지가 닿는 곳이에요.", "가장 왼쪽 긴 칸에서 오른쪽으로 네 번째 칸이에요."],
+          e: "가운뎃줄이에요. 이 돌기 조각이 F예요." },
+        { q: "2보드에서 돌기가 있는 조각은 어느 줄에 있나요?", o: ["윗줄", "가운뎃줄", "아랫줄", "숫자줄"], a: 1,
+          h: ["1보드 가운뎃줄과 한 줄로 이어지는 줄이에요.", "오른손 검지가 닿는 곳이에요.", "맨 왼쪽 칸 바로 오른쪽 칸이에요."],
+          e: "가운뎃줄이에요. 이 돌기 조각이 J예요." },
+        { q: "3보드 숫자패드에서 돌기가 있는 숫자는 무엇일까요?", o: ["2", "4", "5", "8"], a: 2,
+          h: ["숫자가 세 줄 세 칸으로 모인 곳의 가운뎃줄이에요.", "오른손 가운데 손가락이 닿는 곳이에요.", "4와 6 사이에 있어요."],
+          e: "숫자 5예요. 5 위는 8, 아래는 2예요." },
+        { q: "로봇에게 앞으로 가라고만 말하면 로봇이 멈춰요. 정확한 명령은 무엇일까요?", o: ["앞으로 빨리 가!", "앞으로 두 걸음!", "로봇아, 제발 가!", "그냥 가!"], a: 1,
+          h: ["컴퓨터는 말한 그대로만 움직여요.", "얼마나 가야 하는지 숫자가 필요해요.", "걸음 수를 넣어 보세요."],
+          e: "앞으로 두 걸음처럼 정확하게 말해야 움직여요. 이걸 명령이라고 해요." }
+      ] },
+    { n: 2, t: "A S D G와 Q W E R T", k: "Y",
+      intro: "오늘은 왼손 홈 자리와 윗줄이에요. 일에는 순서가 있어요. 차례대로 하는 걸 순차라고 해요.",
+      qs: [
+        { q: "가운뎃줄에서 F 돌기 바로 왼쪽 키는 무엇일까요?", o: ["S", "D", "G", "A"], a: 1,
+          h: ["가운뎃줄이에요. CAP이 맨 왼쪽에 있어요.", "왼손 중지가 누르는 키예요.", "돌기에서 왼쪽으로 한 칸이에요."],
+          e: "D예요. F에서 왼쪽으로 가면 D, S, A 순서예요." },
+        { q: "F 돌기에서 오른쪽으로 한 칸은 무엇일까요?", o: ["G", "H", "D", "T"], a: 0,
+          h: ["가운뎃줄이에요.", "왼손 검지가 옆으로 뻗어서 눌러요.", "돌기에서 오른쪽으로 한 칸이에요."],
+          e: "G예요. 누른 뒤에는 검지가 다시 F 돌기로 돌아와요." },
+        { q: "윗줄에서 왼손 약지가 누르는 키는 무엇일까요?", o: ["Q", "W", "E", "R"], a: 1,
+          h: ["TAB이 맨 왼쪽에 있는 줄이에요.", "약지, 네 번째 손가락이에요.", "TAB에서 오른쪽으로 두 번째 칸이에요."],
+          e: "W예요. 가운뎃줄 S 바로 위예요." },
+        { q: "로봇이 숫자 1을 들고 있어요. 두 배를 먼저 하고, 그다음에 3 더하기를 해요. 숫자는 얼마가 될까요?",
+          o: ["4", "5", "8", "9"], a: 1,
+          h: ["두 배를 먼저 해요. 1의 두 배는 얼마일까요?", "두 배를 하면 2가 돼요. 그다음에 3을 더해요.", "2 더하기 3이에요."],
+          e: "5예요. 3 더하기를 먼저 하고 두 배를 하면 8이 돼요. 순서를 바꾸면 결과가 달라져요. 이게 순차예요." }
+      ] },
+    { n: 3, t: "Z X C V B와 숫자줄", k: "P",
+      intro: "오늘은 아랫줄과 숫자줄이에요. 틀린 곳을 찾아 고치는 일을 디버깅이라고 해요. 틀린 곳을 잘 찾아봐요.",
+      qs: [
+        { q: "아랫줄에서 왼손 새끼손가락 키는 무엇일까요?", o: ["Z", "X", "C", "V"], a: 0,
+          h: ["SHI가 맨 왼쪽에 있는 줄이에요.", "왼손 새끼손가락이에요.", "SHI 바로 오른쪽 칸이에요."],
+          e: "Z예요. 가운뎃줄 A 아래에 있어요." },
+        { q: "F에서 한 줄 내려가서 만나는 왼손 검지 키는 무엇일까요?", o: ["B", "C", "V", "X"], a: 2,
+          h: ["아랫줄이에요.", "왼손 검지가 눌러요.", "SHI에서 오른쪽으로 네 번째 칸이에요."],
+          e: "V예요. B는 V 오른쪽 옆이에요." },
+        { q: "숫자줄 맨 왼쪽 물결표에서 오른쪽으로 두 번째 키는 무엇일까요?", o: ["1", "2", "3", "4"], a: 1,
+          h: ["숫자줄이에요. 윗줄 바로 위예요.", "왼손 약지가 누르는 숫자예요.", "물결표 오른쪽으로 두 칸이에요."],
+          e: "2예요. 새끼 1, 약지 2, 중지 3이에요." },
+        { q: "숫자줄에서 왼손 검지가 누르는 두 숫자는 무엇일까요?", o: ["1과 2", "2와 3", "3과 4", "4와 5"], a: 3,
+          h: ["숫자줄이에요.", "새끼, 약지, 중지 다음이 검지예요.", "3 다음 두 칸이에요."],
+          e: "4와 5예요. 6은 1보드 끝에 있지만 오른손 검지가 눌러요." },
+        { q: "선생님이 가운뎃줄은 왼쪽부터 CAP, A, S, D, G, F라고 말했어요. 어디가 틀렸을까요?", o: ["A와 S가 바뀜", "G와 F가 바뀜", "D가 없음", "CAP이 틀림"], a: 1,
+          h: ["가운뎃줄 순서를 천천히 떠올려 보세요.", "돌기가 있는 키는 F예요.", "돌기 F는 D 바로 오른쪽이에요."],
+          e: "G와 F가 바뀌었어요. 틀린 곳을 찾아 고치는 일이 디버깅이에요." }
+      ] },
+    { n: 4, t: "오른손 홈 자리와 조건", k: "E",
+      intro: "오늘은 오른손 홈 자리와 2보드 윗줄이에요. 만약 이렇다면 이렇게 한다, 이걸 조건이라고 해요.",
+      qs: [
+        { q: "J 돌기에서 오른쪽으로 한 칸은 무엇일까요?", o: ["H", "K", "L", "U"], a: 1,
+          h: ["가운뎃줄이에요.", "오른손 중지가 눌러요.", "돌기에서 오른쪽으로 한 칸이에요."],
+          e: "K예요. J, K, L 순서예요." },
+        { q: "윗줄에서 오른손 약지가 누르는 키는 무엇일까요?", o: ["I", "O", "P", "U"], a: 1,
+          h: ["윗줄이에요.", "오른손 약지가 눌러요.", "L 바로 위예요."],
+          e: "O예요. 가운뎃줄 L 바로 위예요." },
+        { q: "2보드 윗줄에서 맨 왼쪽 글자 키는 무엇일까요?", o: ["T", "Y", "U", "P"], a: 1,
+          h: ["윗줄이에요. 1보드 윗줄 끝 글자 T 다음이에요.", "오른손 검지가 눌러요.", "2보드 윗줄의 첫 칸이에요."],
+          e: "Y예요. T 다음에 Y가 이어져요." },
+        { q: "가운뎃줄에서 오른손 새끼손가락이 누르는 키는 무엇일까요?", o: ["L", "세미콜론", "따옴표", "엔터"], a: 1,
+          h: ["가운뎃줄이에요.", "오른손 새끼손가락이에요.", "L 바로 오른쪽이에요."],
+          e: "세미콜론이에요. 그 오른쪽이 따옴표예요." },
+        { q: "딩동 소리가 났어요. 규칙은 딩동이면 K, 삐면 L이에요. 어느 키를 짚어야 할까요?", o: ["K", "L", "J", "F"], a: 0, sfx: "ding",
+          h: ["규칙을 다시 들어 보세요. 딩동이면 K예요.", "오른손 중지가 눌러요.", "J 돌기 오른쪽 한 칸이에요."],
+          e: "K예요. 조건을 보고 할 일을 고르는 게 조건문이에요." }
+      ] },
+    { n: 5, t: "아랫줄 오른쪽과 숫자줄", k: "W",
+      intro: "오늘은 2보드 아랫줄과 숫자줄이에요. 아니면, 하고 한 가지가 더 붙으면 둘 중 하나를 고르는 거예요.",
+      qs: [
+        { q: "아랫줄에서 오른손 약지가 누르는 키는 무엇일까요?", o: ["쉼표", "마침표", "슬래시", "M"], a: 1,
+          h: ["2보드에서 맨 오른쪽 끝에 SHI가 있는 줄이에요.", "오른손 약지가 눌러요.", "쉼표 바로 오른쪽이에요."],
+          e: "마침표예요. 가운뎃줄 L 아래에 있어요." },
+        { q: "아랫줄에서 N 바로 오른쪽 키는 무엇일까요?", o: ["B", "M", "쉼표", "H"], a: 1,
+          h: ["아랫줄이에요.", "오른손 검지가 눌러요.", "N 바로 옆이에요."],
+          e: "M이에요. J 바로 아래예요." },
+        { q: "2보드 숫자줄 맨 왼쪽 숫자는 무엇일까요?", o: ["6", "7", "8", "9"], a: 1,
+          h: ["숫자줄이에요. 1보드 숫자줄 끝 숫자는 6이에요.", "오른손 검지가 눌러요.", "6 다음 숫자예요."],
+          e: "7이에요. 7, 8, 9, 0이 이어져요." },
+        { q: "숫자줄에서 오른손 약지가 누르는 숫자는 무엇일까요?", o: ["7", "8", "9", "0"], a: 2,
+          h: ["숫자줄이에요.", "오른손 약지가 눌러요.", "7에서 오른쪽으로 두 칸이에요."],
+          e: "9예요. 7은 검지, 8은 중지, 9는 약지예요." },
+        { q: "사과면 박수, 아니면 만세! 선생님이 바나나라고 외쳤어요. 어떻게 할까요?", o: ["박수 세 번", "만세", "가만히 있기", "폴짝 뛰기"], a: 1,
+          h: ["사과인지 먼저 확인해요.", "바나나는 사과가 아니에요.", "사과가 아니면 만세예요."],
+          e: "만세예요. 사과가 아니면, 이게 아니면이에요." }
+      ] },
+    { n: 6, t: "방향키와 편집키", k: "R",
+      intro: "오늘은 3보드의 방향키와 편집키예요. 같은 일을 여러 번 시키는 걸 반복이라고 해요.",
+      qs: [
+        { q: "방향키 중에서 혼자 위에 있는 키는 무엇일까요?", o: ["왼쪽 화살표", "위쪽 화살표", "아래쪽 화살표", "오른쪽 화살표"], a: 1,
+          h: ["방향키는 3보드 맨 아랫줄 쪽에 거꾸로 된 티 모양으로 있어요.", "오른손 중지가 눌러요.", "아래쪽 화살표 바로 위예요."],
+          e: "위쪽 화살표예요." },
+        { q: "방향키 맨 아랫줄에서 가운데 키는 무엇일까요?", o: ["왼쪽 화살표", "위쪽 화살표", "아래쪽 화살표", "오른쪽 화살표"], a: 2,
+          h: ["방향키 맨 아랫줄이에요. 화살표가 세 개 있어요.", "오른손 중지가 눌러요.", "왼쪽 화살표와 오른쪽 화살표 사이예요."],
+          e: "아래쪽 화살표예요." },
+        { q: "INS, HOM, PGU 줄에서 가운데 키는 무엇일까요?", o: ["INS", "HOM", "PGU", "DEL"], a: 1,
+          h: ["맨 윗줄 바로 아래 줄이에요.", "가운데 손가락으로 눌러요.", "INS와 PGU 사이예요."],
+          e: "HOM이에요. 줄의 맨 앞으로 가는 키예요." },
+        { q: "DEL, END, PGD 줄에서 맨 왼쪽 키는 무엇일까요?", o: ["DEL", "END", "PGD", "INS"], a: 0,
+          h: ["HOM 줄 바로 아래 줄이에요.", "맨 왼쪽이에요.", "INS 바로 아래예요."],
+          e: "DEL이에요. 커서 오른쪽 글자를 지우는 키예요." },
+        { q: "박수, 네 번 반복! 박수를 몇 번 쳐야 할까요?", o: ["두 번", "세 번", "네 번", "열 번"], a: 2,
+          h: ["반복은 같은 일을 여러 번 하는 거예요.", "박수가 어떤 일인지 생각해요.", "숫자는 네 번이에요."],
+          e: "네 번이에요. 같은 일을 여러 번 시키는 걸 반복이라고 해요." }
+      ] },
+    { n: 7, t: "숫자패드와 변수", k: "I",
+      intro: "오늘은 5 돌기를 기준으로 숫자패드를 익혀요. 이름표가 붙은 상자에 값을 넣어 두는 걸 변수라고 해요.",
+      qs: [
+        { q: "5에서 바로 위에 있는 숫자는 무엇일까요?", o: ["2", "4", "6", "8"], a: 3,
+          h: ["숫자패드 가운뎃줄 근처예요.", "오른손 중지가 눌러요.", "5 바로 위예요."],
+          e: "8이에요. 5 아래는 2예요." },
+        { q: "5에서 바로 왼쪽에 있는 숫자는 무엇일까요?", o: ["2", "4", "6", "8"], a: 1,
+          h: ["숫자패드 가운뎃줄이에요.", "오른손 검지가 눌러요.", "5 바로 왼쪽이에요."],
+          e: "4예요. 5 오른쪽은 6이에요." },
+        { q: "세로로 긴 키 두 개 중에서 아래쪽 키는 무엇일까요?", o: ["플러스", "엔터", "마이너스", "별표"], a: 1,
+          h: ["숫자패드 맨 오른쪽 줄이에요.", "새끼손가락이 눌러요.", "플러스 키 바로 아래예요."],
+          e: "엔터예요. 위쪽 긴 키는 플러스예요." },
+        { q: "금고 번호 7, 4, 1, 0을 5 돌기 기준으로 누르면 어떤 순서일까요?",
+          o: ["5 왼쪽 세로줄을 위에서 아래로 7, 4, 1, 그리고 0", "5 오른쪽 세로줄을 위에서 아래로 9, 6, 3, 그리고 0", "5 위쪽 세로줄을 아래에서 위로 2, 5, 8", "맨 윗줄 왼쪽부터 넘락, 슬래시, 별표, 마이너스"], a: 0,
+          h: ["7, 4, 1은 같은 세로줄에 있어요.", "5의 왼쪽 세로줄이에요.", "0은 맨 아랫줄 큰 칸이에요."],
+          e: "5 왼쪽 세로줄이에요. 위에서 아래로 7, 4, 1, 그리고 0이에요." },
+        { q: "비밀번호 상자에 3을 넣었다가 5로 바꿨어요. 지금 상자 안의 숫자는 무엇일까요?", o: ["3", "5", "8", "0"], a: 1,
+          h: ["상자 이름은 비밀번호예요.", "마지막에 넣은 값이 남아요.", "마지막에 넣은 숫자는 5예요."],
+          e: "5예요. 상자에는 마지막에 넣은 값이 들어 있어요. 이게 변수예요." }
+      ] },
+    { n: 8, t: "가장자리 기능키와 함수", k: "T",
+      intro: "오늘은 판 양쪽 끝의 기능키예요. 여러 가지 일에 이름 하나를 붙이는 걸 함수라고 해요.",
+      qs: [
+        { q: "가운뎃줄 맨 왼쪽에 있는 긴 키는 무엇일까요?", o: ["TAB", "CAP", "SHI", "ESC"], a: 1,
+          h: ["가운뎃줄이에요. F 돌기가 있는 줄이에요.", "왼손 새끼손가락이 눌러요.", "F 돌기에서 왼쪽 끝까지 가면 만나요."],
+          e: "CAP이에요. 대문자를 고정하는 키예요." },
+        { q: "2보드 숫자줄 맨 오른쪽의 큰 키는 무엇일까요?", o: ["ENT", "SHI", "BAC", "SPACE"], a: 2,
+          h: ["숫자줄이에요.", "오른손 새끼손가락이 눌러요.", "마이너스와 등호 다음에 있어요."],
+          e: "BAC예요. 글자를 지우는 백스페이스예요." },
+        { q: "판에서 가장 긴 키는 무엇일까요?", o: ["SHI", "ENT", "TAB", "SPACE"], a: 3,
+          h: ["맨 아랫줄에 있어요.", "엄지손가락으로 눌러요.", "1보드와 2보드에 하나씩 있어요."],
+          e: "SPACE예요. 띄어쓰기를 해요." },
+        { q: "1보드 맨 위 왼쪽 구석에 혼자 있는 키는 무엇일까요?", o: ["TAB", "CAP", "ESC", "WIN"], a: 2,
+          h: ["맨 윗줄이에요.", "왼손 새끼손가락이에요.", "1보드 맨 왼쪽 위예요."],
+          e: "ESC예요. 취소하거나 나갈 때 눌러요." },
+        { q: "양치해라고 하면 어떤 일을 순서대로 하나요?",
+          o: ["치약 짜기, 칫솔질하기, 헹구기", "헹구기, 치약 짜기, 칫솔질하기", "칫솔질하기, 헹구기, 치약 짜기", "세수하기, 옷 입기, 밥 먹기"], a: 0,
+          h: ["함수는 이름 하나로 여러 일을 부르는 거예요.", "방금 만든 순서를 떠올려 보세요.", "치약부터 시작해요."],
+          e: "치약 짜기, 칫솔질하기, 헹구기예요. 이름 하나로 여러 일을 부르는 게 함수예요." }
+      ] },
+    { n: 9, t: "F키와 SHIFT 기호", k: "E",
+      intro: "오늘은 맨 윗줄의 F키와 두 키를 같이 누르는 조합이에요. 그리고로 묶인 조건은 둘 다 맞아야 해요.",
+      qs: [
+        { q: "ESC 오른쪽 빈 띠를 건너 처음 만나는 키는 무엇일까요?", o: ["F1", "F4", "F5", "F9"], a: 0,
+          h: ["맨 윗줄이에요.", "왼손 새끼손가락 쪽이에요.", "ESC 바로 옆 빈 띠를 건너요."],
+          e: "F1이에요. F1은 도움말이에요." },
+        { q: "1보드 맨 윗줄에서 맨 오른쪽에 혼자 있는 키는 무엇일까요?", o: ["F1", "F4", "F5", "F6"], a: 2,
+          h: ["맨 윗줄이에요.", "왼손 쪽이에요.", "빈 띠를 두 번 건넌 뒤에 있어요."],
+          e: "F5예요. F5는 새로고침이에요." },
+        { q: "2보드 맨 윗줄에서 큰 빈 띠 뒤 첫 키는 무엇일까요?", o: ["F6", "F8", "F9", "F12"], a: 2,
+          h: ["맨 윗줄이에요.", "오른손 쪽이에요.", "F8 다음 큰 빈 띠를 건너요."],
+          e: "F9예요. F9부터 F12까지 네 개가 모여 있어요." },
+        { q: "SHIFT와 2를 같이 누르면 나오는 기호는 무엇일까요?", o: ["느낌표", "골뱅이", "샵", "물음표"], a: 1,
+          h: ["숫자줄이에요.", "SHIFT는 새끼손가락, 2는 약지로 눌러요.", "조각의 윗글자를 읽어 보세요."],
+          e: "골뱅이예요. 이메일 주소에 쓰는 기호예요." },
+        { q: "상자는 빨강 그리고 파랑을 둘 다 눌러야 열려요. 빨강만 눌렀어요. 열릴까요?", o: ["열려요", "안 열려요"], a: 1,
+          h: ["그리고로 묶이면 둘 다 필요해요.", "지금 몇 개 눌렀는지 세어 보세요.", "하나만 눌렀으니 안 열려요."],
+          e: "안 열려요. 그리고로 묶인 조건은 둘 다 맞아야 해요." }
+      ] },
+    { n: 10, t: "총출동 방탈출", k: "R",
+      intro: "연구소의 메인 컴퓨터가 잠겼어요. 지금까지 배운 것을 모두 모아 다섯 단계 자물쇠를 풀고, 마지막 문은 열쇠 글자로 열어요.",
+      qs: [
+        { q: "1단계, 순차. 가운뎃줄을 맨 왼쪽부터 순서대로 말하면 어떤 것일까요?",
+          o: ["CAP, A, S, D, F, G, H, J, K, L, 세미콜론, 따옴표, 엔터", "CAP, A, S, D, G, F, H, J, K, L, 세미콜론, 따옴표, 엔터", "CAP, S, A, D, F, G, H, J, K, L, 세미콜론, 따옴표, 엔터", "CAP, A, S, D, F, G, J, H, K, L, 세미콜론, 따옴표, 엔터"], a: 0,
+          h: ["가운뎃줄이에요. F 돌기부터 찾아요.", "1보드는 G에서 끝나고 2보드는 H에서 시작해요.", "F 다음은 G, 그다음 판이 바뀌면 H예요."],
+          e: "첫 번째 순서가 맞아요. 순서대로 차례차례가 순차예요." },
+        { q: "2단계, 오류 찾기. 선생님이 아랫줄은 SHI, Z, X, C, B, V, N, M이라고 말했어요. 어디가 틀렸나요?", o: ["Z와 X가 바뀜", "C와 V가 바뀜", "B와 V가 바뀜", "N과 M이 바뀜"], a: 2,
+          h: ["아랫줄이에요.", "왼손 검지가 누르는 두 키예요.", "F 아래 V가 먼저, 그다음 B예요."],
+          e: "B와 V가 바뀌었어요. 맞는 순서는 V, B예요." },
+        { q: "3단계, 조건. 삐 소리가 났어요. 규칙은 딩동이면 J 돌기, 삐면 F 돌기예요. 어느 키를 짚어야 할까요?", o: ["J", "F", "K", "G"], a: 1, sfx: "buzz",
+          h: ["규칙을 다시 들어 보세요.", "삐이면 어느 쪽인지 찾아요.", "왼손 검지 돌기예요."],
+          e: "F 돌기예요. 삐면 F예요." },
+        { q: "4단계, 반복과 방향키. 발소리를 듣고 말하세요. 위쪽 3번 반복, 왼쪽 2번 반복, 그다음 엔터. 어떻게 누를까요?",
+          o: ["위 위 위, 왼쪽 왼쪽, 엔터", "위 위, 왼쪽 왼쪽 왼쪽, 엔터", "아래 아래 아래, 왼쪽 왼쪽, 엔터", "위 위 위, 오른쪽 오른쪽, 엔터"], a: 0, sfx: "steps",
+          h: ["위쪽은 세 번이에요.", "왼쪽은 두 번이에요.", "마지막은 엔터, 2보드 가운뎃줄 맨 끝이에요."],
+          e: "위 위 위, 왼쪽 왼쪽, 엔터예요. 반복 횟수를 잘 들었어요." },
+        { q: "5단계, 변수와 논리. 금고 번호 7, 4, 1, 0을 5 기준으로 누르고, SHIFT 그리고 2를 눌러 마지막 문을 열어요. 나오는 기호는 무엇일까요?", o: ["느낌표", "골뱅이", "샵", "별표"], a: 1,
+          h: ["금고 번호는 5 왼쪽 세로줄이에요.", "SHIFT 그리고 2, 둘 다 눌러요.", "조각의 윗글자를 읽어 보세요."],
+          e: "골뱅이예요. 둘 다 눌러야 열려요." },
+        { q: "마지막 문. 열쇠 글자를 순서대로 이어 보세요. T, Y, P, E, W, R, I, T, E, R. 어떤 단어가 될까요?", o: ["KEYBOARD", "COMPUTER", "TYPEWRITER", "MONITOR"], a: 2,
+          h: ["키보드 윗줄 글자만으로 만든 단어예요.", "옛날에 글자를 찍던 기계예요.", "T, Y, P, E, W, R, I, T, E, R을 이어 보세요."],
+          e: "타자기, TYPEWRITER예요. 우리가 윗줄에서 시작한 건 우연이 아니었어요." }
+      ] }
+  ];
+  window.__escapeData = SESSIONS;
+
+  /* ───────── 설정과 저장 ───────── */
+  var LS_KEY = "kbEscapeGame.v1";
+  var RATES = [0.8, 1.0, 1.2, 1.5, 1.7, 2.0], RATE_NAMES = ["0.8배", "1배", "1.2배", "1.5배", "1.7배", "2배"];
+  var store = { tts: true, sfx: true, rateI2: 2, cleared: {} };
+  try { var raw = localStorage.getItem(LS_KEY); if (raw) { var p = JSON.parse(raw); for (var key in p) store[key] = p[key]; } } catch (e) {}
+  function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(store)); } catch (e) {} }
+
+  var main = document.getElementById("main");
+  var live = document.getElementById("live");
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  /* ───────── 음성(TTS) ───────── */
+  var synth = ("speechSynthesis" in window) ? window.speechSynthesis : null;
+  var voice = null, token = 0, keepAlive = [];
+  function pickVoice() {
+    if (!synth) return;
+    var vs = synth.getVoices() || [];
+    voice = vs.filter(function (v) { return /^ko[-_]?KR$/i.test(v.lang); })[0] ||
+            vs.filter(function (v) { return (v.lang || "").toLowerCase().indexOf("ko") === 0; })[0] || null;
+  }
+  if (synth) { pickVoice(); if (synth.addEventListener) synth.addEventListener("voiceschanged", pickVoice); }
+
+  var PRON = { ESC: "이에스씨", TAB: "탭", CAP: "캡스락", SHI: "시프트", SHIFT: "시프트", CTR: "컨트롤", CTRL: "컨트롤", ALT: "알트",
+    WIN: "윈도우", ENT: "엔터", ENTER: "엔터", BAC: "백스페이스", SPACE: "스페이스바", INS: "인서트", DEL: "딜리트", HOM: "홈",
+    END: "엔드", PGU: "페이지 업", PGD: "페이지 다운", PRT: "프린트 스크린", SCR: "스크롤 락", PAU: "포즈", NUM: "넘 락",
+    FN: "에프엔", APP: "메뉴 키", KEYBOARD: "키보드", COMPUTER: "컴퓨터", TYPEWRITER: "타이프라이터", MONITOR: "모니터" };
+  function pron(t) {
+    return String(t).replace(/\b[A-Z]{2,}\b/g, function (m) { return PRON[m] || m; }).replace(/[·…]/g, " ").replace(/\s+/g, " ").trim();
+  }
+  function chunk(t) {
+    var parts = t.match(/[^.!?]+[.!?]*/g) || [t], out = [], buf = "";
+    parts.forEach(function (s) { buf += s; if (buf.length >= 12) { out.push(buf.trim()); buf = ""; } });
+    if (buf.trim()) out.push(buf.trim());
+    return out;
+  }
+  function stopSpeech() { token++; try { if (synth) synth.cancel(); } catch (e) {} }
+  function speak(text, rate) {
+    var my = ++token;
+    if (!synth || !store.tts || !text) return Promise.resolve(false);
+    try { synth.cancel(); } catch (e) {}
+    var parts = chunk(pron(text)), i = 0;
+    return new Promise(function (res) {
+      function next() {
+        if (my !== token) { res(false); return; }
+        if (i >= parts.length) { res(true); return; }
+        var u = new SpeechSynthesisUtterance(parts[i++]);
+        u.lang = "ko-KR"; if (voice) u.voice = voice; u.rate = rate || RATES[store.rateI2] || 1.2;
+        u.onend = next; u.onerror = next;
+        keepAlive.push(u); if (keepAlive.length > 20) keepAlive.shift();
+        try { synth.speak(u); } catch (e) { res(false); }
+      }
+      setTimeout(next, 40);
+    });
+  }
+  function announce(t) { live.textContent = ""; setTimeout(function () { live.textContent = t; }, 60); }
+
+  /* ───────── 효과음(WebAudio) ───────── */
+  var ac = null;
+  function ctx() {
+    if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+    if (ac && ac.state === "suspended") { try { ac.resume(); } catch (e) {} }
+    return ac;
+  }
+  function tone(freq, start, dur, type, vol) {
+    var a = ctx(); if (!a) return;
+    var o = a.createOscillator(), g = a.createGain(), t0 = a.currentTime + start;
+    o.type = type || "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(vol || 0.2, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + dur + 0.05);
+  }
+  function noise(start, dur, vol, freq, kind) {
+    var a = ctx(); if (!a) return;
+    var n = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    var src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(), t0 = a.currentTime + start;
+    src.buffer = buf; f.type = kind || "bandpass"; f.frequency.value = freq || 1500;
+    g.gain.setValueAtTime(vol || 0.3, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    src.connect(f); f.connect(g); g.connect(a.destination); src.start(t0);
+  }
+  var SFX = {
+    clack: function () { noise(0, 0.06, 0.5, 2600); tone(900, 0.02, 0.09, "square", 0.12); tone(600, 0.11, 0.14, "square", 0.12); return 420; },
+    buzz: function () { tone(700, 0, 0.45, "square", 0.16); return 560; },
+    fanfare: function () {
+      [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * 0.16, 0.3, "triangle", 0.22); });
+      tone(523, 0.7, 0.8, "triangle", 0.18); tone(659, 0.7, 0.8, "triangle", 0.18); tone(784, 0.7, 0.8, "triangle", 0.18);
+      return 1600;
+    },
+    ding: function () { tone(880, 0, 0.5, "sine", 0.25); tone(660, 0.4, 0.8, "sine", 0.25); return 1300; },
+    steps: function () { for (var i = 0; i < 4; i++) noise(i * 0.42, 0.14, 0.5, 260, "lowpass"); return 1800; },
+    bibi: function () { tone(1568, 0, 0.09, "square", 0.05); tone(1568, 0.22, 0.09, "square", 0.05); tone(1568, 0.7, 0.09, "square", 0.04); tone(1568, 0.92, 0.09, "square", 0.04); return 1100; },
+    snore: function () { tone(110, 0, 0.4, "sine", 0.2); tone(98, 0.5, 0.45, "sine", 0.2); return 1000; },
+    thud: function () { noise(0, 0.2, 0.8, 90, "lowpass"); tone(70, 0, 0.22, "sine", 0.4); return 450; },
+    spill: function () { noise(0, 0.55, 0.3, 2600, "bandpass"); noise(0.2, 0.4, 0.25, 1400, "bandpass"); return 800; },
+    boing: function () {
+      var a = ctx(); if (!a) return 500;
+      var o = a.createOscillator(), g = a.createGain(), t0 = a.currentTime;
+      o.type = "sine"; o.frequency.setValueAtTime(180, t0); o.frequency.exponentialRampToValueAtTime(720, t0 + 0.12); o.frequency.exponentialRampToValueAtTime(220, t0 + 0.4);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(0.25, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.45);
+      o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + 0.5); return 600;
+    },
+    step: function () { noise(0, 0.09, 0.45, 220, "lowpass"); return 120; },
+    tick: function () { tone(660, 0, 0.06, "square", 0.08); return 90; },
+    bump: function () { noise(0, 0.16, 0.7, 120, "lowpass"); tone(110, 0, 0.22, "sine", 0.4); return 380; }
+  };
+  function sfx(kind) { if (!store.sfx || !SFX[kind]) return 0; return SFX[kind](); }
+  function sfxThenSpeak(kind, text) {
+    stopSpeech();
+    var ms = sfx(kind), my = token;
+    setTimeout(function () { if (my === token) speak(text); }, ms);
+  }
+
+  /* ───────── 상태 ───────── */
+  var S = { screen: "start", si: 0, mi: 0, m: null, qi: 0, wrong: [], hintLv: 0, hintsShown: [], answered: false, right: -1, clean: 0, tried: false, narr: "", helpFrom: "start", resetArmed: false };
+  var muteUntil = 0;
+  function muteFocus() { muteUntil = performance.now() + 450; }
+  function focusEl(el) { if (el) { muteFocus(); try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); } } }
+  function focusHeading() { focusEl(document.getElementById("h")); }
+
+  function lettersWord() {
+    return SESSIONS.map(function (s) { return store.cleared[s.n] ? s.k : "_"; });
+  }
+  function wordSpoken() {
+    var w = lettersWord();
+    return w.map(function (c) { return c === "_" ? "빈칸" : c; }).join(", ");
+  }
+
+  /* ───────── 화면 ───────── */
+  function render() {
+    stopSpeech();
+    var fn = { start: viewStart, select: viewSelect, intro: viewIntro, q: viewQ, m: viewM, clear: viewClear, help: viewHelp }[S.screen];
+    fn();
+  }
+  function setMain(html) { main.innerHTML = html; window.scrollTo(0, 0); }
+
+  function viewStart() {
+    setMain('<section><h2 tabindex="-1" id="h">키보드 탐험대에 오신 걸 환영해요</h2>' +
+      '<p>이 게임은 소리로 진행돼요. 문제를 읽어 주고, 보기에 마우스를 올리거나 탭 키로 이동하면 내용을 읽어 줘요. 보기를 누르면 맞았는지 소리로 알려 줘요.</p>' +
+      '<p>화면 낭독 프로그램을 쓴다면 위쪽의 음성 안내를 꺼 주세요.</p>' +
+      '<div class="row"><button type="button" class="btn primary say" data-action="begin">시작하기</button></div></section>');
+    S.narr = "";
+    focusEl(document.getElementById("h"));
+  }
+
+  function viewHelp() {
+    setMain('<section><h2 tabindex="-1" id="h">도움말</h2>' +
+      '<ul class="keys">' +
+      '<li>보기에 마우스를 올리거나 탭 키로 이동하면 내용을 읽어 줘요.</li>' +
+      '<li>보기를 누르거나 엔터, 스페이스를 누르면 선택돼요.</li>' +
+      '<li>숫자 키 1, 2, 3, 4: 보기를 바로 골라요.</li>' +
+      '<li>알 키: 지금 화면의 안내를 다시 들어요.</li>' +
+      '<li>에이치 키: 힌트를 들어요.</li>' +
+      '<li>엔 키: 다음 문제로 가요.</li>' +
+      '<li>이에스씨 키: 읽고 있는 소리를 멈춰요.</li>' +
+      '<li>뒤로 가기 버튼은 이전 화면으로, 새로고침 버튼은 지금 화면을 처음 상태로 다시 시작해요.</li>' +
+      '<li>코딩 미션: 방향키로 명령을 넣고 엔터로 실행해요. 백스페이스는 마지막 지우기, 딜리트는 모두 지우기, 숫자 키는 반복 횟수, 피 키는 프로그램 읽기, 에스 키는 주변 살피기, 알파벳 이 키는 실행 기록 듣기예요.</li>' +
+      '<li>틀리면 삐 소리와 함께 힌트가 하나씩 나와요. 벌칙은 없어요.</li>' +
+      '</ul><div class="row"><button type="button" class="btn primary say" data-action="helpBack">돌아가기</button></div></section>');
+    S.narr = "도움말이에요. 보기에 마우스를 올리거나 탭 키로 이동하면 내용을 읽어 줘요. 숫자 키로 보기를 바로 고를 수 있어요. 알 키는 안내 다시 듣기, 에이치 키는 힌트, 엔 키는 다음 문제, 이에스씨 키는 소리 멈추기예요. 돌아가기 버튼을 누르세요.";
+    focusEl(document.getElementById("h")); speak(S.narr);
+  }
+
+  function viewSelect() {
+    var w = lettersWord(), btns = SESSIONS.map(function (s) {
+      var done = !!store.cleared[s.n], say = s.n + "회, " + STORY[s.n].room + ", " + s.t + (done ? ". 클리어, 열쇠 글자 " + s.k : "");
+      return '<button type="button" class="btn say' + (done ? " done" : "") + '" data-action="session" data-n="' + s.n + '" data-say="' + esc(say) + '" aria-label="' + esc(say) + '">' +
+        s.n + '회 · ' + esc(STORY[s.n].room) + ' · ' + esc(s.t) + (done ? ' · 클리어 ' + s.k : '') + '</button>';
+    }).join("");
+    var rs = S.resetArmed ? "정말 지울까요? 한 번 더 누르세요" : "진행 기록 지우기";
+    setMain('<section><h2 tabindex="-1" id="h">어느 방으로 갈까요?</h2><p class="meta">사라진 황금 타자기를 찾는 사건이에요. 방마다 자물쇠를 풀고 열쇠 글자를 모아요.</p>' +
+      '<p class="meta">모은 열쇠 글자</p><p class="word" aria-label="모은 열쇠 글자 ' + esc(wordSpoken()) + '">' + w.join(" ") + '</p>' +
+      '<div class="grid" role="group" aria-label="회차 선택">' + btns + '</div>' +
+      '<div class="row"><button type="button" class="btn say" data-action="reset">' + rs + '</button></div></section>');
+    S.narr = "사라진 황금 타자기를 찾는 사건이에요. 어느 방으로 갈까요? 모은 열쇠 글자는 " + wordSpoken() + "이에요. 탭 키로 방을 고르세요.";
+    focusEl(document.getElementById("h")); speak(S.narr);
+  }
+
+  function viewIntro() {
+    var s = SESSIONS[S.si], st = STORY[s.n], hasM = !!MISSIONS[s.n] && s.n <= 3, rec = recapText(s.n), got = collectedLetters();
+    setMain('<section><h2 tabindex="-1" id="h">' + s.n + '회 · ' + esc(st.room) + '</h2>' +
+      (rec ? '<p class="meta">' + esc(rec) + '</p>' : '') +
+      (got ? '<p class="meta">지금 모은 열쇠 글자: ' + esc(got) + '</p>' : '') +
+      '<p>' + esc(st.scene) + '</p><p class="meta">오늘 배울 것: ' + esc(s.t) + '</p>' +
+      '<p class="meta">' + (hasM ? '코딩 미션 ' + MISSIONS[s.n].length + '개와 ' : '') + '자물쇠 ' + s.qs.length + '개를 풀면 열쇠 글자를 얻어요.</p>' +
+      '<div class="row">' + (hasM ? '<button type="button" class="btn primary say" data-action="startM">코딩 미션 시작</button>' : '') +
+      '<button type="button" class="btn' + (hasM ? '' : ' primary') + ' say" data-action="startQ">' + (hasM ? '자물쇠로 바로 가기' : '자물쇠 풀기') + '</button>' +
+      '<button type="button" class="btn say" data-action="toSelect">방 선택</button></div></section>');
+    S.narr = (rec ? rec + " " : "") + (got ? "지금 모은 열쇠 글자는 " + got + "예요. " : "") + s.n + "회, " + st.room + ". " + st.scene +
+      (hasM ? " 먼저 코딩 미션 장치를 살펴봐요. 코딩 미션 시작 버튼을 누르세요." : " 자물쇠 풀기 버튼을 누르세요.");
+    focusEl(document.getElementById("h"));
+    speak(S.narr).then(function (ok) { if (ok && S.screen === "intro") sfx("bibi"); });
+  }
+
+  function optSay(q, i) {
+    var st = S.wrong.indexOf(i) >= 0 ? ". 틀린 보기예요" : (S.answered && i === q.a ? ". 열리는 보기예요" : "");
+    return (i + 1) + "번, " + q.o[i] + st;
+  }
+
+  function viewQ() {
+    var s = SESSIONS[S.si], q = s.qs[S.qi], total = s.qs.length;
+    var opts = q.o.map(function (t, i) {
+      var cls = "opt say", wrong = S.wrong.indexOf(i) >= 0, right = S.answered && i === q.a;
+      if (wrong) cls += " wrong"; if (right) cls += " right";
+      var say = optSay(q, i);
+      return '<button type="button" class="' + cls + '" data-action="opt" data-i="' + i + '" data-say="' + esc(say) + '" aria-label="' + esc(say) + '"' +
+        (wrong || S.answered ? ' aria-disabled="true"' : '') + '><span class="num" aria-hidden="true">' + (i + 1) + '</span><span class="txt">' + esc(t) + '</span></button>';
+    }).join("");
+    var hints = S.hintsShown.map(function (h, i) { return "<li>힌트 " + (i + 1) + ". " + esc(h) + "</li>"; }).join("");
+    var last = S.qi === total - 1;
+    setMain('<section aria-labelledby="h"><p class="meta">' + s.n + '회 · 자물쇠 ' + (S.qi + 1) + ' / ' + total + '</p>' +
+      '<h2 tabindex="-1" id="h">' + esc(q.q) + '</h2>' +
+      '<div class="opts" role="group" aria-label="보기">' + opts + '</div>' +
+      '<div class="fb" id="fb"></div>' +
+      '<ol class="hints" id="hints">' + hints + '</ol>' +
+      '<div class="row"><button type="button" class="btn say" data-action="repeat" aria-label="문제 다시 듣기, 알 키">다시 듣기 (R)</button>' +
+      '<button type="button" class="btn say" data-action="hint" aria-label="힌트 듣기, 에이치 키">힌트 (H)</button>' +
+      '<button type="button" class="btn primary say" id="nextBtn" data-action="next" ' + (S.answered ? "" : "hidden") + '>' + (last ? "열쇠 얻기" : "다음 자물쇠") + ' (N)</button></div></section>');
+    S.narr = (S.qi === 0 ? "자물쇠가 " + total + "개 있어요. " : "") + "자물쇠 " + (S.qi + 1) + "번. " + q.q + " 보기는 " + q.o.map(function (t, i) { return (i + 1) + "번, " + t; }).join(". ") + ".";
+    focusEl(document.getElementById("h"));
+    if (!S.answered) { if (q.sfx && !S.tried) sfxThenSpeak(q.sfx, S.narr); else speak(S.narr); }
+    S.tried = true;
+  }
+
+  function setFeedback(text, kind) {
+    var fb = document.getElementById("fb");
+    if (fb) { fb.textContent = text; fb.className = "fb" + (kind ? " " + kind : ""); }
+    announce(text);
+  }
+  function refreshOpts() {
+    var s = SESSIONS[S.si], q = s.qs[S.qi];
+    main.querySelectorAll(".opt").forEach(function (b) {
+      var i = +b.getAttribute("data-i"), wrong = S.wrong.indexOf(i) >= 0, right = S.answered && i === q.a;
+      b.classList.toggle("wrong", wrong); b.classList.toggle("right", right);
+      if (wrong || S.answered) b.setAttribute("aria-disabled", "true");
+      var say = optSay(q, i); b.setAttribute("data-say", say); b.setAttribute("aria-label", say);
+    });
+  }
+  function showHint(n) {
+    var q = SESSIONS[S.si].qs[S.qi];
+    S.hintsShown = q.h.slice(0, n);
+    var ol = document.getElementById("hints");
+    if (ol) ol.innerHTML = S.hintsShown.map(function (h, i) { return "<li>힌트 " + (i + 1) + ". " + esc(h) + "</li>"; }).join("");
+  }
+  function revealNext() {
+    var nb = document.getElementById("nextBtn");
+    if (nb) { nb.hidden = false; focusEl(nb); }
+  }
+
+  function choose(i) {
+    if (S.screen !== "q") return;
+    var s = SESSIONS[S.si], q = s.qs[S.qi], last = S.qi === s.qs.length - 1;
+    if (S.answered) { speak("이미 열린 자물쇠예요. " + (last ? "열쇠 얻기" : "다음 자물쇠") + " 버튼을 누르세요."); return; }
+    if (S.wrong.indexOf(i) >= 0) { speak("이미 고른 틀린 보기예요. 다른 보기를 골라 보세요."); return; }
+    var tail = " " + (last ? "엔터를 누르면 열쇠 글자를 얻어요." : "엔터를 누르면 다음 자물쇠로 가요.");
+    if (i === q.a) {
+      S.answered = true;
+      if (S.wrong.length === 0 && S.hintLv === 0) S.clean++;
+      refreshOpts(); var msg = "찰칵, 자물쇠가 열렸어요! " + q.e;
+      setFeedback(msg, "ok"); revealNext();
+      pickThen(i, "clack", msg + tail);
+    } else {
+      S.wrong.push(i); refreshOpts();
+      var remaining = q.o.length - S.wrong.length;
+      if (S.wrong.length >= 3 || remaining <= 1) {
+        S.answered = true; refreshOpts();
+        var m = "아직 안 열려요. 괜찮아요. 정답은 " + (q.a + 1) + "번이에요. " + q.e;
+        setFeedback(m, "bad"); revealNext();
+        pickThen(i, "buzz", m + " 같이 짚어 봐요." + tail);
+      } else if (S.hintLv < 3) {
+        S.hintLv++; showHint(S.hintLv);
+        var hm = "아직 안 열려요. 힌트 " + S.hintLv + "번. " + q.h[S.hintLv - 1];
+        setFeedback(hm, "bad"); pickThen(i, "buzz", hm);
+      } else {
+        var m2 = "아직 안 열려요. 다시 골라 보세요. 힌트는 모두 썼어요.";
+        setFeedback(m2, "bad"); pickThen(i, "buzz", m2);
+      }
+    }
+  }
+
+  function hintBtn() {
+    if (S.screen !== "q") return;
+    var q = SESSIONS[S.si].qs[S.qi];
+    if (S.answered) { speak("이미 열린 자물쇠예요."); return; }
+    if (S.hintLv >= 3) { speak("힌트를 모두 썼어요. 보기를 골라 보세요."); return; }
+    S.hintLv++; showHint(S.hintLv);
+    var t = "힌트 " + S.hintLv + "번. " + q.h[S.hintLv - 1];
+    setFeedback(t, ""); speak(t);
+  }
+
+  function nextQ() {
+    if (S.screen !== "q" || !S.answered) return;
+    var s = SESSIONS[S.si];
+    if (S.qi < s.qs.length - 1) {
+      S.qi++; S.wrong = []; S.hintLv = 0; S.hintsShown = []; S.answered = false; S.tried = false; render();
+    } else {
+      store.cleared[s.n] = true; save(); S.screen = "clear"; render();
+    }
+  }
+
+  function viewClear() {
+    var s = SESSIONS[S.si], st = STORY[s.n], w = lettersWord(), total = s.qs.length, more = s.n < 10, got = collectedLetters();
+    var msg = "철컥, 자물쇠가 모두 열렸어요! 열쇠 글자 " + s.k + "를 얻었어요. " + st.clue + " 지금까지 모은 열쇠 글자는 " + got + "예요. " +
+      (more ? "다음 이야기. " + st.teaser : st.ending + " 키보드 106개를 모두 만났어요. 키보드 탐험대 수료를 축하해요!");
+    setMain('<section><h2 tabindex="-1" id="h">' + s.n + '회 · ' + esc(st.room) + ' 클리어!</h2><p class="meta">열쇠 글자</p><div class="bigkey" aria-hidden="true">' + s.k + '</div>' +
+      '<p>' + esc(st.clue) + '</p>' +
+      '<p class="meta">도움 없이 연 자물쇠: ' + total + '개 중 ' + S.clean + '개</p>' +
+      '<p class="meta">모은 열쇠 글자</p><p class="word" aria-label="모은 열쇠 글자 ' + esc(wordSpoken()) + '">' + w.join(" ") + '</p>' +
+      (more ? '<p>다음 이야기: ' + esc(st.teaser) + '</p>' : '<p>' + esc(st.ending) + '</p><p>키보드 106개를 모두 만났어요. 수료를 축하해요!</p>') +
+      '<div class="row">' + (more ? '<button type="button" class="btn primary say" data-action="nextSession">다음 방으로</button>' : '') +
+      '<button type="button" class="btn say" data-action="toSelect">방 선택</button></div></section>');
+    S.narr = msg + (more ? " 다음 방으로 버튼이나 방 선택 버튼을 누르세요." : " 방 선택 버튼을 누르세요.");
+    focusEl(document.getElementById("h")); sfxThenSpeak("fanfare", S.narr);
+  }
+
+  function startSession(n) {
+    S.si = n - 1; S.qi = 0; S.wrong = []; S.hintLv = 0; S.hintsShown = []; S.answered = false; S.clean = 0; S.tried = false;
+    S.screen = "intro"; render();
+  }
+
+  /* ───────── 코딩 미션 ───────── */
+  if (typeof store.moveMode !== "number") store.moveMode = 0;
+  function fastRate() { return Math.min(2, (RATES[store.rateI2] || 1.2) * 1.3); }
+  function cmdLabel(c) { return c.t === "bundle" ? "묶음" + (c.n > 1 ? " " + c.n + "번" : "") : DNAME[c.d] + (c.n > 1 ? " " + c.n + "칸" : ""); }
+  var DIRS = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] };
+  var DNAME = { U: "위", D: "아래", L: "왼쪽", R: "오른쪽" };
+  var runTok = 0;
+  function letterOf(e) {
+    var c = e.code || "";
+    if (/^Key[A-Z]$/.test(c)) return c.slice(3).toLowerCase();
+    return (e.key || "").toLowerCase();
+  }
+  var pickTok = 0;
+  function pickThen(i, kind, text) {
+    var pre = (i + 1) + "번을 골랐어요.", my = ++pickTok;
+    var fb = document.getElementById("fb"); if (fb) fb.textContent = pre + " " + text;
+    announce(pre + " " + text);
+    speak(pre).then(function () { if (my === pickTok && S.screen === "q") sfxThenSpeak(kind, text); });
+  }
+  function mv(d, n) { return { t: "move", d: d, n: n || 1 }; }
+
+var MISSIONS = {
+ "1": [
+  {
+   "type": "prog",
+   "title": "길 따라가기",
+   "concept": "명령",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    3,
+    0
+   ],
+   "walls": [
+    [
+     1,
+     2
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "explain": "로봇을 별까지 보내 보세요. 로봇은 말한 그대로만 움직여요. 벽을 피해서 가야 해요. 한 칸씩 정확하게 명령해야 해요.",
+   "keys": "명령은 방향키로 넣고, 엔터로 실행해요.",
+   "tip": "오른쪽 3번, 위쪽 3번이에요. 오른쪽 화살표를 세 번, 위쪽 화살표를 세 번 누르고 엔터를 누르세요. 중간에 멈추면 몇 칸이 모자란지 같이 세어 보세요.",
+   "win": "명령을 정확하게 말하면 로봇이 그대로 움직여요.",
+   "sol": [
+    "R",
+    "R",
+    "R",
+    "U",
+    "U",
+    "U"
+   ]
+  },
+  {
+   "type": "prog",
+   "title": "별 세 개 모으기",
+   "concept": "명령",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    3,
+    0
+   ],
+   "stars": [
+    [
+     2,
+     3
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     3,
+     1
+    ]
+   ],
+   "walls": [
+    [
+     1,
+     2
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     3,
+     2
+    ]
+   ],
+   "explain": "이번에는 별이 세 개 있어요. 별을 세 개 모두 모은 다음 깃발까지 가야 해요. 별 위를 지나가면 모을 수 있어요.",
+   "keys": "명령은 방향키로 넣고, 엔터로 실행해요.",
+   "tip": "오른쪽 2번, 위쪽 2번, 오른쪽 1번, 위쪽 1번이에요. 모두 여섯 개의 명령이에요.",
+   "win": "여섯 개의 명령을 정확하게 말해서 별을 모두 모았어요.",
+   "sol": [
+    "R",
+    "R",
+    "U",
+    "U",
+    "R",
+    "U"
+   ]
+  }
+ ],
+ "2": [
+  {
+   "type": "seq",
+   "relay": 4,
+   "title": "아침 준비",
+   "concept": "순차",
+   "explain": "학교 가기 전에 아침 준비를 하는 로봇이에요. 목표는 이를 깨끗하게 닦고 신발도 제대로 신고 학교에 가는 거예요. 친구들이 돌아가며 한 가지씩 할 일을 골라요. 다섯 가지를 모두 넣고 엔터를 누르면 로봇이 차례대로 하고, 끝나면 결과를 말해 줘요.",
+   "keys": "숫자 키로 할 일을 넣고, 엔터로 실행해요. 틀리면 딜리트로 지우고 다시 해요.",
+   "tip": "일어나기가 맨 처음이고 신발 신기가 맨 마지막이에요. 밥을 먹은 다음에 양치를 해요. 양말은 신발보다 앞이면 아무 때나 괜찮아요.",
+   "win": "일에는 순서가 있어요. 순서를 바꾸면 결과가 달라져요. 순서대로 실행되는 게 순차예요.",
+   "good": "이가 깨끗하고 신발도 잘 신었어요! 학교 갈 준비 끝!",
+   "actions": [
+    {
+     "name": "밥 먹기",
+     "done": "밥을 먹었어요."
+    },
+    {
+     "name": "신발 신기",
+     "done": "신발을 신었어요."
+    },
+    {
+     "name": "일어나기",
+     "done": "눈을 번쩍 떴어요."
+    },
+    {
+     "name": "양치하기",
+     "done": "양치를 했어요."
+    },
+    {
+     "name": "양말 신기",
+     "done": "양말을 신었어요."
+    }
+   ],
+   "rules": [
+    {
+     "type": "first",
+     "a": 2,
+     "issue": "일어나기 전에 한 일은 모두 꿈속에서 한 거예요. 눈을 뜨고 다시 해야 해요.",
+     "sfx": "snore"
+    },
+    {
+     "type": "before",
+     "a": 0,
+     "b": 3,
+     "issue": "양치를 하고 밥을 먹었어요. 이가 다시 더러워졌어요!",
+     "sfx": "spill"
+    },
+    {
+     "type": "before",
+     "a": 4,
+     "b": 1,
+     "issue": "신발을 먼저 신고 양말을 신었어요. 양말이 신발 위에 있어요!",
+     "sfx": "boing"
+    },
+    {
+     "type": "last",
+     "a": 1,
+     "except_": [
+      4
+     ],
+     "issue": "신발을 신은 다음에 {names}를 했어요. 신발은 집을 나서기 바로 전에 마지막으로 신어요!",
+     "sfx": "thud"
+    }
+   ]
+  },
+  {
+   "type": "chain",
+   "relay": 4,
+   "begin": 1,
+   "target": 20,
+   "needWins": 2,
+   "title": "20 만들기",
+   "concept": "순차",
+   "explain": "숫자 1을 들고 있는 로봇이에요. 두 배 카드, 3 더하기 카드, 2 더하기 카드가 있어요. 친구들이 돌아가며 카드를 한 장씩 골라서 숫자를 키워요. 딱 20이 되면 성공이에요. 20을 넘으면 처음부터 다시 시작해요. 성공을 두 번 하면 클리어예요.",
+   "keys": "숫자 1은 두 배, 숫자 2는 3 더하기, 숫자 3은 2 더하기예요. 백스페이스는 마지막 카드 취소, 딜리트는 처음부터 다시예요.",
+   "tip": "예를 들어 두 배 세 번, 3 더하기 두 번, 2 더하기 세 번이면 1, 2, 4, 8, 11, 14, 16, 18, 20이에요. 8에서 두 배를 하면 16, 3 더하기를 하면 11이에요. 같은 카드도 순서에 따라 숫자가 달라요.",
+   "win": "순서에 따라 숫자가 달라졌어요. 두 배를 먼저 하면 숫자가 빨리 커지고, 3 더하기를 먼저 하면 천천히 커져요. 순서를 생각하면 목표에 딱 맞출 수 있어요.",
+   "actions": [
+    {
+     "name": "두 배",
+     "op": "mul",
+     "v": 2,
+     "done": "두 배"
+    },
+    {
+     "name": "3 더하기",
+     "op": "add",
+     "v": 3,
+     "done": "3 더하기"
+    },
+    {
+     "name": "2 더하기",
+     "op": "add",
+     "v": 2,
+     "done": "2 더하기"
+    }
+   ]
+  }
+ ],
+ "3": [
+  {
+   "type": "prog",
+   "title": "틀린 곳 고치기",
+   "concept": "오류 찾기",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    3,
+    0
+   ],
+   "walls": [
+    [
+     2,
+     2
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "prefill": [
+    {
+     "t": "move",
+     "d": "R",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "R",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "U",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "R",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "U",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "U",
+     "n": 1
+    }
+   ],
+   "explain": "선생님이 만든 프로그램에 벌레가 숨어 있어요. 먼저 실행해서 어디서 쿵 소리가 나는지 들어 보세요. 그다음 틀린 곳을 찾아 고쳐서 별까지 보내세요.",
+   "keys": "엔터로 실행하고, 백스페이스로 마지막 명령을 지워요.",
+   "tip": "세 번째 명령 위쪽에서 벽에 부딪혀요. 백스페이스를 네 번 눌러 세 번째부터 지우고, 오른쪽, 위, 위, 위를 입력한 다음 엔터를 누르세요.",
+   "win": "틀린 곳을 찾아 고쳤어요. 이게 디버깅이에요.",
+   "fail_first": [
+    3
+   ],
+   "fix": [
+    "X",
+    "X",
+    "X",
+    "X",
+    "R",
+    "U",
+    "U",
+    "U"
+   ]
+  },
+  {
+   "type": "prog",
+   "title": "긴 프로그램 고치기",
+   "concept": "오류 찾기",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    3,
+    3
+   ],
+   "walls": [
+    [
+     1,
+     3
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "prefill": [
+    {
+     "t": "move",
+     "d": "U",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "U",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "U",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "R",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "R",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "R",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "R",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "D",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "D",
+     "n": 1
+    },
+    {
+     "t": "move",
+     "d": "D",
+     "n": 1
+    }
+   ],
+   "explain": "이번 프로그램은 더 길어요. 쿵 소리가 나는 곳을 찾아서 몇 번째 명령이 틀렸는지 알아내세요. 그 뒤로는 새로 입력해야 해요.",
+   "keys": "엔터로 실행하고, 백스페이스로 마지막 명령을 지워요.",
+   "tip": "일곱 번째 명령 오른쪽은 판의 끝이라서 막혀요. 백스페이스를 네 번 눌러 일곱 번째부터 지우고 아래쪽을 세 번 입력하세요.",
+   "win": "긴 프로그램에서도 틀린 곳을 찾아 고쳤어요. 소리와 번호가 단서였어요.",
+   "fail_first": [
+    7
+   ],
+   "fix": [
+    "X",
+    "X",
+    "X",
+    "X",
+    "D",
+    "D",
+    "D"
+   ]
+  }
+ ],
+ "4": [
+  {
+   "type": "rule",
+   "title": "신호를 보고 움직이기",
+   "concept": "조건 If",
+   "rule": {
+    "open": "up",
+    "blocked": "wait"
+   },
+   "ruleText": "앞이 열렸으면 위로 가요. 막혔으면 기다려요.",
+   "seq": [
+    "open",
+    "open",
+    "blocked",
+    "open",
+    "blocked",
+    "open"
+   ],
+   "explain": "로봇은 앞이 열렸는지 막혔는지 소리로 알려 줘요. 딩동이면 열린 거고, 쿵이면 막힌 거예요. 규칙에 맞게 명령해 주세요.",
+   "keys": "열렸으면 위쪽 화살표, 막혔으면 스페이스바를 눌러요.",
+   "tip": "앞이 열렸으면 위쪽 화살표, 막혔으면 스페이스바를 누르세요.",
+   "win": "조건에 따라 할 일을 골랐어요. 이게 조건이에요."
+  },
+  {
+   "type": "rule",
+   "title": "긴 복도 건너기",
+   "concept": "조건 If",
+   "rule": {
+    "open": "up",
+    "blocked": "wait"
+   },
+   "ruleText": "앞이 열렸으면 위로 가요. 막혔으면 기다려요.",
+   "seq": [
+    "open",
+    "blocked",
+    "blocked",
+    "open",
+    "open",
+    "blocked",
+    "open",
+    "blocked",
+    "open",
+    "open"
+   ],
+   "explain": "이번에는 신호가 열 번 나와요. 막힌 신호가 연달아 나올 수도 있어요. 신호를 하나도 놓치지 말고 규칙대로 명령해 주세요.",
+   "keys": "열렸으면 위쪽 화살표, 막혔으면 스페이스바를 눌러요.",
+   "tip": "열렸으면 위쪽 화살표, 막혔으면 스페이스바를 누르세요.",
+   "win": "열 번의 신호를 모두 조건에 맞게 처리했어요."
+  }
+ ],
+ "5": [
+  {
+   "type": "rule",
+   "title": "둘 중 하나 고르기",
+   "concept": "If-Else",
+   "rule": {
+    "open": "up",
+    "blocked": "right"
+   },
+   "ruleText": "앞이 열렸으면 위로 가요. 아니면 오른쪽으로 가요.",
+   "seq": [
+    "open",
+    "blocked",
+    "open",
+    "open",
+    "blocked",
+    "open",
+    "blocked",
+    "open"
+   ],
+   "explain": "이번에는 아니면이 붙어요. 앞이 열렸는지 막혔는지 소리를 듣고, 규칙에 맞게 명령해 주세요.",
+   "keys": "열렸으면 위쪽 화살표, 막혔으면 오른쪽 화살표를 눌러요.",
+   "tip": "열렸으면 위쪽 화살표, 막혔으면 오른쪽 화살표를 누르세요.",
+   "win": "아니면이 붙어서 둘 중 하나를 골랐어요. 이게 If-Else예요."
+  },
+  {
+   "type": "rule",
+   "title": "세 갈래 규칙",
+   "concept": "If-Else If",
+   "rule": {
+    "open": "up",
+    "blocked": "right",
+    "danger": "wait"
+   },
+   "ruleText": "앞이 열렸으면 위로 가요. 막혔으면 오른쪽으로 가요. 불이 났으면 기다려요.",
+   "seq": [
+    "open",
+    "danger",
+    "blocked",
+    "open",
+    "danger",
+    "blocked",
+    "open",
+    "open",
+    "danger",
+    "open"
+   ],
+   "explain": "신호가 세 가지예요. 딩동은 열린 길, 쿵은 막힌 길, 삐는 불이 난 거예요. 세 가지 규칙을 잘 기억하고 명령해 주세요.",
+   "keys": "열렸으면 위쪽 화살표, 막혔으면 오른쪽 화살표, 불이 났으면 스페이스바를 눌러요.",
+   "tip": "딩동이면 위쪽 화살표, 쿵이면 오른쪽 화살표, 삐면 스페이스바를 누르세요.",
+   "win": "세 가지 경우를 모두 구분해서 처리했어요."
+  }
+ ],
+ "6": [
+  {
+   "type": "prog",
+   "rep": true,
+   "title": "반복으로 줄이기",
+   "concept": "반복",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    3,
+    0
+   ],
+   "walls": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ]
+   ],
+   "maxCmds": 2,
+   "explain": "별은 오른쪽으로 세 칸, 위로 세 칸 떨어져 있어요. 그런데 이번에는 명령을 두 개만 쓸 수 있어요. 같은 일을 여러 번 시키는 걸 반복이라고 해요. 숫자 3을 누르고 오른쪽 화살표를 누르면 오른쪽으로 세 번 반복해요.",
+   "keys": "숫자 키로 반복 횟수를 정하고 방향키를 눌러요.",
+   "tip": "숫자 3, 오른쪽 화살표, 숫자 3, 위쪽 화살표, 엔터 순서예요.",
+   "win": "같은 명령을 여러 번 시키는 반복으로 명령이 짧아졌어요.",
+   "sol": [
+    [
+     "R",
+     3
+    ],
+    [
+     "U",
+     3
+    ]
+   ]
+  },
+  {
+   "type": "prog",
+   "rep": true,
+   "title": "네모 돌기",
+   "concept": "반복",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    0,
+    3
+   ],
+   "stars": [
+    [
+     3,
+     3
+    ],
+    [
+     3,
+     0
+    ],
+    [
+     0,
+     0
+    ]
+   ],
+   "walls": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ]
+   ],
+   "maxCmds": 4,
+   "explain": "로봇이 판의 가장자리를 한 바퀴 돌아서 제자리로 돌아와야 해요. 세 모서리에 별이 있어요. 별을 모두 모으고 출발한 곳으로 돌아오세요. 명령은 네 개까지만 쓸 수 있어요.",
+   "keys": "숫자 키로 반복 횟수를 정하고 방향키를 눌러요.",
+   "tip": "오른쪽 3번, 위쪽 3번, 왼쪽 3번, 아래쪽 3번이에요. 숫자 3을 네 번 써요.",
+   "win": "반복 네 번으로 네모 한 바퀴를 돌았어요.",
+   "sol": [
+    [
+     "R",
+     3
+    ],
+    [
+     "U",
+     3
+    ],
+    [
+     "L",
+     3
+    ],
+    [
+     "D",
+     3
+    ]
+   ]
+  },
+  {
+   "type": "prog",
+   "rep": true,
+   "title": "긴 뱀 길",
+   "concept": "반복",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    3,
+    0
+   ],
+   "walls": [
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     2
+    ],
+    [
+     2,
+     2
+    ]
+   ],
+   "maxCmds": 5,
+   "explain": "뱀처럼 구불구불한 길이에요. 반복 없이 가면 열두 번을 눌러야 해요. 명령 다섯 개로 줄여 보세요.",
+   "keys": "숫자 키로 반복 횟수를 정하고 방향키를 눌러요.",
+   "tip": "오른쪽 3번, 위쪽 2번, 왼쪽 3번, 위쪽 1번, 오른쪽 3번이에요.",
+   "win": "열두 걸음을 명령 다섯 개로 줄였어요.",
+   "sol": [
+    [
+     "R",
+     3
+    ],
+    [
+     "U",
+     2
+    ],
+    [
+     "L",
+     3
+    ],
+    [
+     "U",
+     1
+    ],
+    [
+     "R",
+     3
+    ]
+   ]
+  }
+ ],
+ "7": [
+  {
+   "type": "box",
+   "title": "금고 번호 상자",
+   "concept": "변수",
+   "explain": "상자에는 이름표가 붙어 있어요. 이 상자의 이름은 금고 번호예요. 숫자 7, 4, 1, 0을 차례로 누르고 엔터를 눌러 상자에 넣어 보세요.",
+   "keys": "숫자 키로 입력하고 엔터로 넣어요. 틀리면 백스페이스로 지워요.",
+   "tip": "숫자 7, 4, 1, 0을 누르고 엔터를 누르세요.",
+   "win": "상자에는 마지막에 넣은 값이 남아 있어요. 이게 변수예요.",
+   "steps": [
+    {
+     "expect": "7410",
+     "set": [
+      "금고 번호",
+      "7410"
+     ],
+     "ok": "저장했어요. 금고 번호 상자 안에는 7, 4, 1, 0이 들어 있어요. 이제 상자의 값을 바꿔 볼게요. 숫자 5를 누르고 엔터를 눌러요.",
+     "bad": "금고 번호는 7, 4, 1, 0이에요. 다시 눌러 보세요."
+    },
+    {
+     "expect": "5",
+     "set": [
+      "금고 번호",
+      "5"
+     ],
+     "ok": "상자 안의 값이 5로 바뀌었어요. 예전 값 7, 4, 1, 0은 사라졌어요. 이제 금고를 열어요. 상자 안에 든 값을 입력하고 엔터를 눌러요.",
+     "bad": "숫자 5를 넣어요."
+    },
+    {
+     "expect": "@금고 번호",
+     "ok": "",
+     "bad": "상자 안의 값을 다시 떠올려 보세요.",
+     "badmap": {
+      "7410": "7, 4, 1, 0은 예전 값이에요. 지금 상자 안에는 5가 들어 있어요."
+     }
+    }
+   ],
+   "sol": [
+    "7410",
+    "5",
+    "5"
+   ]
+  },
+  {
+   "type": "box",
+   "title": "상자 두 개 더하기",
+   "concept": "변수",
+   "explain": "이번에는 상자가 두 개예요. 상자 A에 3을 넣고, 상자 B에 4를 넣을 거예요. 먼저 숫자 3을 누르고 엔터를 눌러 A 상자에 넣어 보세요.",
+   "keys": "숫자 키로 입력하고 엔터로 넣어요. 틀리면 백스페이스로 지워요.",
+   "tip": "3 엔터, 4 엔터, 7 엔터, 1 0 엔터, 1 4 엔터 순서예요.",
+   "win": "상자의 값이 바뀌면 계산 결과도 바뀌어요. 변수는 값이 바뀔 수 있는 이름표 붙은 상자예요.",
+   "steps": [
+    {
+     "expect": "3",
+     "set": [
+      "A",
+      "3"
+     ],
+     "ok": "A 상자에 3이 들어갔어요. 이제 B 상자에 4를 넣어요. 숫자 4를 누르고 엔터를 눌러요.",
+     "bad": "A 상자에 넣을 숫자는 3이에요."
+    },
+    {
+     "expect": "4",
+     "set": [
+      "B",
+      "4"
+     ],
+     "ok": "B 상자에 4가 들어갔어요. A 더하기 B는 얼마일까요? 답을 입력하고 엔터를 눌러요.",
+     "bad": "B 상자에 넣을 숫자는 4예요."
+    },
+    {
+     "expect": "7",
+     "ok": "맞아요! 3 더하기 4는 7이에요. 이제 A 상자의 값을 10으로 바꿔요. 숫자 1, 0을 누르고 엔터를 눌러요.",
+     "bad": "A는 3, B는 4예요. 두 숫자를 더해 보세요."
+    },
+    {
+     "expect": "10",
+     "set": [
+      "A",
+      "10"
+     ],
+     "ok": "A 상자가 10으로 바뀌었어요. B는 그대로 4예요. 이제 A 더하기 B는 얼마일까요?",
+     "bad": "숫자 1, 0을 눌러요."
+    },
+    {
+     "expect": "14",
+     "ok": "",
+     "bad": "A는 이제 10이에요. B는 그대로 4예요. 다시 더해 보세요.",
+     "badmap": {
+      "7": "7은 예전 값이에요. A가 10으로 바뀌었어요. 다시 더해 보세요."
+     }
+    }
+   ],
+   "sol": [
+    "3",
+    "4",
+    "7",
+    "10",
+    "14"
+   ]
+  }
+ ],
+ "8": [
+  {
+   "type": "prog",
+   "rep": true,
+   "bundle": true,
+   "title": "묶음으로 계단 오르기",
+   "concept": "함수",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    3,
+    0
+   ],
+   "walls": [
+    [
+     1,
+     3
+    ],
+    [
+     2,
+     2
+    ],
+    [
+     3,
+     1
+    ]
+   ],
+   "maxCmds": 1,
+   "maxBundle": 2,
+   "explain": "별까지는 계단이에요. 위로 한 칸, 오른쪽으로 한 칸을 세 번 해야 해요. 먼저 엠 키를 눌러 묶음 만들기를 시작하고, 위, 오른쪽을 입력한 다음 엠 키를 다시 눌러 끝내요. 이 묶음에 이름을 붙이면 함수예요. 그다음 숫자 3을 누르고 비 키를 눌러 묶음을 세 번 실행해요.",
+   "keys": "엠 키로 묶음을 만들고, 비 키로 묶음을 넣어요. 엔터로 실행해요.",
+   "tip": "엠 키, 위쪽 화살표, 오른쪽 화살표, 엠 키, 숫자 3, 비 키, 엔터 순서예요.",
+   "win": "여러 동작에 이름을 붙여 한 번에 불렀어요. 이게 함수예요.",
+   "sol": [
+    [
+     "B",
+     3
+    ]
+   ],
+   "bsol": [
+    "U",
+    "R"
+   ]
+  },
+  {
+   "type": "prog",
+   "rep": true,
+   "bundle": true,
+   "title": "함수와 직진 섞기",
+   "concept": "함수",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    3,
+    0
+   ],
+   "walls": [
+    [
+     2,
+     2
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     3,
+     2
+    ]
+   ],
+   "maxCmds": 3,
+   "maxBundle": 2,
+   "explain": "이번에는 계단 두 번, 그다음 오른쪽 한 칸, 그다음 위로 한 칸이에요. 묶음 하나와 명령 두 개를 섞어서 명령 세 개 안에 끝내 보세요.",
+   "keys": "엠 키로 묶음을 만들고, 비 키로 묶음을 넣어요. 숫자 키로 반복해요.",
+   "tip": "묶음은 위, 오른쪽이에요. 숫자 2와 비 키, 오른쪽 한 번, 위쪽 한 번, 엔터 순서예요.",
+   "win": "묶음 함수와 반복을 섞어서 짧은 프로그램을 만들었어요.",
+   "sol": [
+    [
+     "B",
+     2
+    ],
+    "R",
+    "U"
+   ],
+   "bsol": [
+    "U",
+    "R"
+   ]
+  }
+ ],
+ "9": [
+  {
+   "type": "prog",
+   "rep": true,
+   "title": "버튼 두 개를 모두 누르기",
+   "concept": "논리 그리고",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    0,
+    1
+   ],
+   "door": true,
+   "walls": [
+    [
+     1,
+     2
+    ]
+   ],
+   "buttons": [
+    {
+     "c": 2,
+     "r": 3,
+     "k": "빨강"
+    },
+    {
+     "c": 2,
+     "r": 1,
+     "k": "파랑"
+    }
+   ],
+   "explain": "문이 닫혀 있어요. 빨강 버튼 그리고 파랑 버튼을 둘 다 밟아야 문이 열려요. 하나만 밟으면 안 열려요. 두 버튼을 모두 밟고 문까지 가세요.",
+   "keys": "명령은 방향키로 넣고, 숫자 키로 반복해요. 엔터로 실행해요.",
+   "tip": "오른쪽 2번, 위쪽 2번, 왼쪽 2번이에요. 문으로 곧장 가면 안 열려요.",
+   "win": "두 조건이 모두 맞아야 문이 열렸어요. 이게 그리고예요.",
+   "sol": [
+    [
+     "R",
+     2
+    ],
+    [
+     "U",
+     2
+    ],
+    [
+     "L",
+     2
+    ]
+   ]
+  },
+  {
+   "type": "prog",
+   "rep": true,
+   "title": "하나만 눌러도 열리는 문",
+   "concept": "논리 또는",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    3,
+    0
+   ],
+   "door": true,
+   "doorMode": "or",
+   "walls": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ]
+   ],
+   "buttons": [
+    {
+     "c": 0,
+     "r": 1,
+     "k": "빨강"
+    },
+    {
+     "c": 3,
+     "r": 3,
+     "k": "파랑"
+    }
+   ],
+   "maxCmds": 2,
+   "explain": "이번 문은 달라요. 빨강 버튼 또는 파랑 버튼, 둘 중 하나만 밟아도 문이 열려요. 길도 두 가지예요. 어느 쪽으로 가도 괜찮아요.",
+   "keys": "명령은 방향키로 넣고, 숫자 키로 반복해요. 엔터로 실행해요.",
+   "tip": "왼쪽 길은 위쪽 3번, 오른쪽 3번이에요. 오른쪽 길은 오른쪽 3번, 위쪽 3번이에요. 둘 다 성공해요.",
+   "win": "둘 중 하나만 맞아도 열리는 게 또는이에요.",
+   "sol": [
+    [
+     "U",
+     3
+    ],
+    [
+     "R",
+     3
+    ]
+   ],
+   "sol2": [
+    [
+     "R",
+     3
+    ],
+    [
+     "U",
+     3
+    ]
+   ]
+  },
+  {
+   "type": "prog",
+   "rep": true,
+   "title": "버튼 세 개와 문",
+   "concept": "논리 그리고",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    0,
+    2
+   ],
+   "door": true,
+   "walls": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "buttons": [
+    {
+     "c": 3,
+     "r": 3,
+     "k": "빨강"
+    },
+    {
+     "c": 3,
+     "r": 0,
+     "k": "파랑"
+    },
+    {
+     "c": 0,
+     "r": 0,
+     "k": "초록"
+    }
+   ],
+   "maxCmds": 4,
+   "explain": "이번에는 버튼이 세 개예요. 빨강 그리고 파랑 그리고 초록, 세 개를 모두 밟아야 문이 열려요. 문은 시작 바로 위에 있어요.",
+   "keys": "명령은 방향키로 넣고, 숫자 키로 반복해요. 엔터로 실행해요.",
+   "tip": "오른쪽 3번, 위쪽 3번, 왼쪽 3번, 아래쪽 2번이에요.",
+   "win": "세 조건이 모두 맞아야 열렸어요. 그리고가 늘어나도 원리는 같아요.",
+   "sol": [
+    [
+     "R",
+     3
+    ],
+    [
+     "U",
+     3
+    ],
+    [
+     "L",
+     3
+    ],
+    [
+     "D",
+     2
+    ]
+   ]
+  }
+ ],
+ "10": [
+  {
+   "type": "prog",
+   "rep": true,
+   "title": "총출동 미로",
+   "concept": "총정리",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    0,
+    0
+   ],
+   "door": true,
+   "stars": [
+    [
+     2,
+     1
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "walls": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ],
+    [
+     3,
+     0
+    ]
+   ],
+   "buttons": [
+    {
+     "c": 3,
+     "r": 3,
+     "k": "빨강"
+    },
+    {
+     "c": 3,
+     "r": 1,
+     "k": "파랑"
+    }
+   ],
+   "maxCmds": 5,
+   "explain": "마지막 미션이에요. 별 두 개를 모으고, 빨강 버튼 그리고 파랑 버튼을 둘 다 밟은 다음 문까지 가세요. 명령은 다섯 개까지만 쓸 수 있어요.",
+   "keys": "숫자 키로 반복 횟수를 정하고 방향키를 눌러요. 엔터로 실행해요.",
+   "tip": "오른쪽 3번, 위쪽 2번, 왼쪽 1번, 위쪽 1번, 왼쪽 2번이에요.",
+   "win": "순차, 반복, 논리를 모두 썼어요. 대단해요!",
+   "sol": [
+    [
+     "R",
+     3
+    ],
+    [
+     "U",
+     2
+    ],
+    [
+     "L",
+     1
+    ],
+    [
+     "U",
+     1
+    ],
+    [
+     "L",
+     2
+    ]
+   ]
+  },
+  {
+   "type": "prog",
+   "rep": true,
+   "bundle": true,
+   "title": "함수와 논리의 만남",
+   "concept": "총정리",
+   "w": 4,
+   "h": 4,
+   "start": [
+    0,
+    3
+   ],
+   "goal": [
+    3,
+    0
+   ],
+   "door": true,
+   "walls": [
+    [
+     1,
+     3
+    ],
+    [
+     2,
+     2
+    ],
+    [
+     3,
+     1
+    ]
+   ],
+   "buttons": [
+    {
+     "c": 1,
+     "r": 1,
+     "k": "빨강"
+    },
+    {
+     "c": 2,
+     "r": 0,
+     "k": "파랑"
+    }
+   ],
+   "maxCmds": 1,
+   "maxBundle": 2,
+   "explain": "마지막 도전이에요. 계단 길 위에 빨강 버튼과 파랑 버튼이 있어요. 문은 계단 맨 위에 있어요. 명령은 딱 한 개만 쓸 수 있어요. 묶음 함수를 써서 한 번에 해결해 보세요.",
+   "keys": "엠 키로 묶음을 만들고, 비 키로 묶음을 넣어요. 엔터로 실행해요.",
+   "tip": "묶음은 위, 오른쪽이에요. 숫자 3과 비 키를 누르고 엔터를 누르세요. 계단이 두 버튼을 모두 지나가요.",
+   "win": "함수 한 번으로 버튼 두 개를 모두 밟고 문까지 갔어요. 모든 걸 합쳤어요!",
+   "sol": [
+    [
+     "B",
+     3
+    ]
+   ],
+   "bsol": [
+    "U",
+    "R"
+   ]
+  }
+ ]
+};
+
+
+  var ICON = { "빨강": "🔴", "파랑": "🔵", "초록": "🟢" };
+  var SIGS = { open: { say: "앞이 열렸어요.", sfx: "ding" }, blocked: { say: "앞이 막혔어요.", sfx: "bump" }, danger: { say: "앞에 불이 났어요.", sfx: "buzz" } };
+  function goalWord(m) { return m.door ? "문" : ((m.stars || m.flag) ? "깃발" : "별"); }
+  var STORY = {
+ "1": {
+  "room": "접수실",
+  "scene": "키보드 마을 박물관에서 보물 황금 타자기가 사라졌어요! 탐험대 여러분, 사건 접수실로 오세요. 철커덩, 접수실 문이 잠겼어요. 탐정 소장님이 말해요. 키보드의 비밀 나침반, 돌기 세 개를 찾아야 문이 열려요. 어디선가 삐, 삐, 하는 작은 소리가 들려요.",
+  "mission": "접수실에는 길 안내 로봇 장치가 있어요. 명령을 정확하게 내려야 로봇이 열쇠 별을 가져와요.",
+  "clue": "소장님이 탐정 나침반을 건네줬어요. 바닥에는 작은 발소리가 남아 있어요. 삐, 삐, 소리는 복도 쪽에서 나요.",
+  "teaser": "발소리를 따라 복도로 가요."
+ },
+ "2": {
+  "room": "복도",
+  "scene": "발소리를 따라 긴 복도에 왔어요. 바닥에는 발자국이 순서대로 찍혀 있어요. 순서를 틀리면 길을 잃어요. 복도 끝 문이 철커덩 잠겨 있어요.",
+  "mission": "복도의 순서 장치예요. 일에는 순서가 있어요. 순서를 맞춰야 로봇이 열쇠를 가져와요.",
+  "clue": "발자국은 한 줄로 이어져 수리실 쪽으로 가요. 삐, 삐, 소리도 같은 쪽에서 들려요.",
+  "teaser": "수리실로 가 봐요."
+ },
+ "3": {
+  "room": "수리실",
+  "scene": "수리실에 왔어요. 바닥에 부서진 자물쇠와 구겨진 설계도가 있어요. 설계도에는 틀린 곳이 숨어 있어요. 틀린 곳을 찾아 고치면 문이 열려요.",
+  "mission": "고장 난 로봇 프로그램이에요. 틀린 곳을 고쳐야 로봇이 열쇠를 가져와요.",
+  "clue": "설계도의 실수는 서툰 손이 그린 것 같아요. 범인은 아직 어린 것 같아요.",
+  "teaser": "도서관에 단서가 있어요."
+ },
+ "4": {
+  "room": "도서관",
+  "scene": "도서관 책장은 신기해요. 앞이 열렸다는 딩동 소리가 나면 책장이 움직이고, 쿵 소리가 나면 멈춰 있어요. 신호를 잘 듣고 규칙대로 움직여요.",
+  "mission": "신호 책장 장치예요. 신호를 듣고 규칙에 맞게 명령해요.",
+  "clue": "책장 뒤에서 낡은 일기장을 찾았어요. 첫 장에 이렇게 적혀 있어요. 타자기 소리가 너무 좋아요.",
+  "teaser": "일기장 지도를 따라 지하로 내려가요."
+ },
+ "5": {
+  "room": "지하 갈림길",
+  "scene": "지하로 내려왔어요. 길이 두 갈래예요. 신호에 맞는 쪽만 길이 이어져요. 틀린 쪽으로 가면 쿵 부딪혀요.",
+  "mission": "갈림길 신호 장치예요. 신호에 맞게 길을 골라요.",
+  "clue": "일기장 다음 장에는 이렇게 적혀 있어요. 길이 너무 복잡해서 무서워요. 범인은 길을 잃은 것 같아요.",
+  "teaser": "높은 곳의 종소리를 따라 시계탑으로 가요."
+ },
+ "6": {
+  "room": "시계탑",
+  "scene": "높은 시계탑에 왔어요. 종이 울릴 때마다 비밀 번호가 하나씩 나와요. 종소리를 잘 세어 봐요.",
+  "mission": "시계탑 계단 로봇이에요. 반복을 써서 빠르게 올라가요.",
+  "clue": "종이 울릴 때마다 삐, 삐, 소리가 같이 울렸어요. 범인은 소리 나는 걸 아주 좋아하나 봐요.",
+  "teaser": "금고실로 가요."
+ },
+ "7": {
+  "room": "금고실",
+  "scene": "금고실에는 이름표가 붙은 상자들이 있어요. 누군가 상자 안의 번호를 바꿨어요. 지금 상자 안에 든 번호가 맞는 번호예요.",
+  "mission": "이름표 상자 장치예요. 상자에 번호를 넣고 바꿔 봐요.",
+  "clue": "금고 안에서 쪽지를 찾았어요. 미안해요, 돌려주고 싶은데 어디에 두었는지 길도 모르겠어요.",
+  "teaser": "작업실에 범인이 쓰던 기계가 있어요."
+ },
+ "8": {
+  "room": "작업실",
+  "scene": "작업실에 이상한 묶음 기계가 있어요. 한마디만 말하면 여러 동작이 한꺼번에 움직여요. 기계에 이름을 붙여서 불러요.",
+  "mission": "묶음 기계예요. 동작을 묶어서 한 번에 불러요.",
+  "clue": "이 기계는 작은 로봇이 혼자 길을 가려고 만든 거예요. 범인은 작은 로봇이에요!",
+  "teaser": "비밀의 문으로 가요."
+ },
+ "9": {
+  "room": "비밀의 문",
+  "scene": "비밀의 문 앞에 왔어요. 문에는 버튼이 여러 개 있어요. 어떤 문은 버튼을 모두 눌러야 열리고, 어떤 문은 하나만 눌러도 열려요.",
+  "mission": "버튼 문 장치예요. 버튼을 눌러 문을 열어요.",
+  "clue": "문 너머에서 삐, 삐, 소리가 아주 가까워졌어요. 거의 다 왔어요.",
+  "teaser": "타자기실로 가요."
+ },
+ "10": {
+  "room": "타자기실",
+  "scene": "드디어 타자기실이에요. 금고 앞에 작은 로봇이 앉아 있어요. 삐삐예요! 삐삐는 길을 잃어 어쩔 줄 몰라 해요. 열쇠 글자 열 개로 금고를 열고, 삐삐가 길을 찾도록 명령을 가르쳐 줘요.",
+  "mission": "마지막 미로예요. 삐삐가 길을 찾도록 도와줘요.",
+  "clue": "열쇠 글자 열 개를 모두 모았어요.",
+  "teaser": "",
+  "ending": "열쇠 글자 열 개를 이으면 TYPEWRITER, 황금 타자기의 이름이에요. 철컥, 금고가 열리고 황금 타자기가 나왔어요! 삐삐가 말해요. 고마워요, 탐험대! 여러분이 가르쳐 준 명령 덕분에 이제 길을 알아요. 삐삐는 타자기를 박물관에 돌려주고, 탐험대의 도우미 로봇이 되었어요. 사건 해결, 축하해요!"
+ }
+};
+  function collectedLetters() {
+    return SESSIONS.filter(function (x) { return store.cleared[x.n]; }).map(function (x) { return x.k; }).join(", ");
+  }
+  function recapText(n) { return n > 1 && STORY[n - 1] ? "지난 이야기. " + STORY[n - 1].clue : ""; }
+  function curMission() { return MISSIONS[SESSIONS[S.si].n][S.mi]; }
+  function posText(p) { return "왼쪽에서 " + (p[0] + 1) + "번째, 위에서 " + (p[1] + 1) + "번째 칸"; }
+  function digitsSay(t) { return String(t).split("").join(", "); }
+  function describe(m) {
+    var t = "로봇은 " + posText(m.start) + "에 있어요. " + goalWord(m) + "은 " + posText(m.goal) + "에 있어요.";
+    if (m.stars) t += " 별은 " + m.stars.map(posText).join(", ") + "에 있어요.";
+    if (m.buttons) t += " " + m.buttons.map(function (b) { return b.k + " 버튼은 " + posText([b.c, b.r]); }).join(", ") + "에 있어요.";
+    if (m.doorMode === "or") t += " 버튼은 하나만 밟아도 문이 열려요.";
+    if (m.keyAt) t += " 열쇠는 " + posText(m.keyAt) + "에 있어요. 잠긴 문은 " + posText(m.gate) + "에 있어요. 열쇠를 먼저 챙겨야 문이 열려요.";
+    if (m.walls && m.walls.length) t += " 벽은 " + m.walls.map(posText).join(", ") + "에 있어요.";
+    return t;
+  }
+  function fmtCmd(c) {
+    var rep = c.n > 1 ? " " + c.n + "번" : "";
+    if (c.t === "act") return curMission().actions[c.a].name;
+    return c.t === "bundle" ? "묶음" + rep : DNAME[c.d] + rep;
+  }
+  function progText(list) { return list.length ? list.map(fmtCmd).join(", ") : "비어 있음"; }
+  function isWall(m, p) { return (m.walls || []).some(function (w) { return w[0] === p[0] && w[1] === p[1]; }); }
+  function allPressed() {
+    var m = curMission(), bs = m.buttons || [];
+    if (!bs.length) return true;
+    return m.doorMode === "or" ? bs.some(function (b) { return S.m.pressed[b.k]; }) : bs.every(function (b) { return S.m.pressed[b.k]; });
+  }
+  function starsAll() { var m = curMission(); return (m.stars || []).every(function (s) { return S.m.starsGot[s[0] + "," + s[1]]; }); }
+  function starCount() { return Object.keys(S.m.starsGot).length; }
+
+  function mInit(m) {
+    runTok++;
+    S.m = { prog: JSON.parse(JSON.stringify(m.prefill || [])), bundle: [], rec: false, pn: 1, pos: m.start ? m.start.slice() : null,
+      pressed: {}, starsGot: {}, running: false, done: false, rIdx: 0, rLog: [], buf: "", step: 0, vars: {}, badIdx: -1, bumpCell: null, log: [], hasKey: false, found: {}, tries: [], val: (m.begin || 0), wins: 0, attempt: 1, picks: 0, history: [] };
+  }
+
+  function padBtn(act, label, say, attrs) {
+    return '<button type="button" class="btn say" data-action="' + act + '" data-say="' + esc(say) + '" aria-label="' + esc(say) + '"' + (attrs || "") + '>' + label + '</button>';
+  }
+  function progHtml(m) {
+    var h = '<div class="board" id="board" aria-hidden="true" style="grid-template-columns:repeat(' + m.w + ',64px)"></div>' +
+      '<p class="meta" id="where" role="status"></p><h3>프로그램</h3><ol class="prog" id="prog" aria-label="프로그램"></ol>';
+    if (m.bundle) h += '<h3>묶음</h3><ol class="prog" id="bund" aria-label="묶음"></ol>';
+    h += '<h3>실행 기록</h3><ol class="prog" id="runlog" aria-label="실행 기록"></ol>';
+    h += '<div class="pad" role="group" aria-label="명령 입력">' +
+      padBtn("mcmd", "위 ↑", "위쪽 명령", ' data-d="U"') + padBtn("mcmd", "왼쪽 ←", "왼쪽 명령", ' data-d="L"') +
+      padBtn("mcmd", "아래 ↓", "아래쪽 명령", ' data-d="D"') + padBtn("mcmd", "오른쪽 →", "오른쪽 명령", ' data-d="R"') + '</div>' +
+      (m.rep ? '<div class="pad" role="group" aria-label="반복 횟수">' +
+      [2, 3, 4, 5, 6].map(function (n) { return padBtn("mrep", "반복 " + n + "번", "다음 명령을 " + n + "번 반복", ' data-n="' + n + '"'); }).join("") + '</div>' : '');
+    if (m.bundle) h += '<div class="pad" role="group" aria-label="묶음">' + padBtn("mrec", "묶음 만들기 시작과 끝 (M)", "묶음 만들기 시작 또는 끝") + padBtn("mbundle", "묶음 넣기 (B)", "묶음 실행 명령 넣기") + '</div>';
+    h += '<div class="pad" role="group" aria-label="실행">' +
+      '<button type="button" class="btn primary say" data-action="mrun" data-say="실행. 엔터 키">실행 (엔터)</button>' +
+      padBtn("mundo", "마지막 지우기 (백스페이스)", "마지막 명령 지우기") + padBtn("mclear", "모두 지우기 (딜리트)", "모든 명령 지우기") +
+      padBtn("mreadprog", "프로그램 읽기 (P)", "프로그램 읽기") + padBtn("mlook", "주변 살피기 (S)", "주변 살피기") + padBtn("mlog", "실행 기록 듣기 (E)", "실행 기록 듣기") + '</div>';
+    return h;
+  }
+  function ruleHtml(m) {
+    return '<div class="rule" role="note">' + esc(m.ruleText) + '</div><p class="meta" id="rprog" role="status"></p><p id="rlog"></p>' +
+      '<div class="pad" role="group" aria-label="행동 고르기">' +
+      padBtn("mrule", "위로 ↑", "위로 한 걸음", ' data-a="up"') + padBtn("mrule", "오른쪽으로 →", "오른쪽으로 한 걸음", ' data-a="right"') +
+      padBtn("mrule", "기다리기 (스페이스)", "기다리기", ' data-a="wait"') + padBtn("msignal", "신호 다시 듣기 (P)", "신호 다시 듣기") + '</div>';
+  }
+  function boxHtml() {
+    var d = [7, 8, 9, 4, 5, 6, 1, 2, 3, 0].map(function (n) { return padBtn("mdigit", String(n), String(n), ' data-k="' + n + '"'); }).join("");
+    return '<p class="meta" id="boxst" role="status"></p><p class="word" id="boxin" aria-label="입력한 숫자"></p>' +
+      '<div class="pad" role="group" aria-label="숫자">' + d + padBtn("mback", "지우기 (백스페이스)", "지우기") + '<button type="button" class="btn primary say" data-action="msubmit" data-say="엔터">엔터</button></div>';
+  }
+
+  function viewM() {
+    var s = SESSIONS[S.si], ms = MISSIONS[s.n], m = ms[S.mi];
+    mInit(m);
+    var body = m.type === "prog" ? progHtml(m) : (m.type === "chain" ? chainHtml(m) : m.type === "seq" ? seqHtml(m) : (m.type === "rule" ? ruleHtml(m) : boxHtml()));
+    setMain('<section aria-labelledby="h"><p class="meta">' + s.n + '회 코딩 미션 ' + (S.mi + 1) + ' / ' + ms.length + ' · ' + esc(m.concept) + '</p>' +
+      '<h2 tabindex="-1" id="h">' + esc(m.title) + '</h2>' + (S.mi === 0 && STORY[s.n] ? '<p class="meta">' + esc(STORY[s.n].mission) + '</p>' : '') + '<p>' + esc(m.explain) + '</p>' +
+      '<p class="meta">선생님용 안내: ' + esc(m.tip) + '</p>' + body +
+      '<div class="fb" id="fb"></div><div class="row">' +
+      '<button type="button" class="btn say" data-action="mnarr" aria-label="미션 설명 다시 듣기, 알 키">설명 다시 듣기 (R)</button>' +
+      '<button type="button" class="btn primary say" id="mNext" data-action="mnext" hidden>다음</button>' +
+      '<button type="button" class="btn say" data-action="mskip">자물쇠로 건너뛰기</button></div></section>');
+    var extra = m.type === "prog" ? describe(m) + (m.prefill ? " 프로그램은 " + progText(m.prefill) + "예요." : "") : (m.type === "rule" ? "규칙은 " + m.ruleText : (m.type === "chain" ? "카드는 " + m.actions.map(function (a, i) { return (i + 1) + "번 " + a.name; }).join(", ") + "예요. 시작 숫자는 " + m.begin + ", 목표는 " + m.target + "이에요. 성공을 " + m.needWins + "번 하면 클리어예요." : (m.type === "seq" ? "할 일은 " + m.actions.map(function (a, i) { return (i + 1) + "번 " + a.name; }).join(", ") + "이에요." + (m.calc ? " 시작 숫자는 " + m.begin + ", 목표는 " + m.target + "이에요." : "") + (m.explore ? " 엉뚱한 결과는 모두 " + exploreTotal(m) + "가지예요." : "") : "")));
+    S.narr = (S.mi === 0 && STORY[s.n] ? STORY[s.n].mission + " " : "") + m.explain + " " + extra + " " + m.keys + (m.type === "prog" ? " 주변이 궁금하면 에스 키로 둘러볼 수 있어요." : "");
+    if (m.type === "prog") { updateBoard(); updateProg(); updateLog(); }
+    if (m.type === "seq") { updateProg(); updateLog(); updateSeqInfo(); }
+    if (m.type === "chain") { updateProg(); updateChain(); }
+    if (m.type === "rule") updateRule();
+    if (m.type === "box") updateBox();
+    focusEl(document.getElementById("h"));
+    var after = m.type === "rule" ? function (ok) { if (ok && S.screen === "m" && !S.m.done) ruleSignal(); } : null;
+    var pr = speak(S.narr); if (after) pr.then(after);
+  }
+
+  /* 프로그램 미션 */
+  function updateBoard() {
+    var m = curMission(), M = S.m, el = document.getElementById("board"); if (!el) return;
+    var html = "";
+    for (var r = 0; r < m.h; r++) for (var c = 0; c < m.w; c++) {
+      var cls = "cell", ch = "";
+      if (isWall(m, [c, r])) cls += " wall";
+      (m.buttons || []).forEach(function (b) { if (b.c === c && b.r === r) ch = M.pressed[b.k] ? "✅" : (ICON[b.k] || "🔘"); });
+      (m.stars || []).forEach(function (s) { if (s[0] === c && s[1] === r) ch = M.starsGot[c + "," + r] ? "✅" : "⭐"; });
+      if (m.keyAt && m.keyAt[0] === c && m.keyAt[1] === r) ch = M.hasKey ? "✅" : "🔑";
+      if (m.gate && m.gate[0] === c && m.gate[1] === r) ch = M.hasKey ? "🔓" : "🚪";
+      if (c === m.goal[0] && r === m.goal[1]) { cls += " goal"; ch = m.door ? (allPressed() ? "🔓" : "🚪") : ((m.stars || m.flag) ? "🏁" : "⭐"); }
+      if (M.bumpCell && M.bumpCell[0] === c && M.bumpCell[1] === r) ch = "💥";
+      if (M.pos && M.pos[0] === c && M.pos[1] === r) ch = "🤖";
+      html += '<div class="' + cls + '">' + ch + '</div>';
+    }
+    el.innerHTML = html;
+  }
+  function updateProg() {
+    var m = curMission(), M = S.m, ol = document.getElementById("prog"); if (!ol) return;
+    ol.innerHTML = M.prog.map(function (c, i) { return i === M.badIdx ? '<li class="bad">' + esc(fmtCmd(c)) + " ← 여기서 쿵!</li>" : "<li>" + esc(fmtCmd(c)) + "</li>"; }).join("");
+    var bo = document.getElementById("bund");
+    if (bo) bo.innerHTML = M.bundle.map(function (c) { return "<li>" + esc(fmtCmd(c)) + "</li>"; }).join("");
+    var w = document.getElementById("where");
+    if (w) w.textContent = "로봇은 " + posText(M.pos) + "에 있어요. 명령 " + M.prog.length + (m.maxCmds ? " / " + m.maxCmds : "") + "개." +
+      (m.stars ? " 별 " + (m.stars.length) + "개 중 " + starCount() + "개." : "") +
+      (M.pn > 1 ? " 다음 명령은 " + M.pn + "번 반복해요." : "") + (M.rec ? " 묶음을 만드는 중이에요." : "");
+  }
+  function afterEdit() {
+    var m = curMission(), M = S.m;
+    if (!M.running) { if (m.start) M.pos = m.start.slice(); M.pressed = {}; M.starsGot = {}; M.hasKey = false; M.badIdx = -1; M.bumpCell = null; M.log = []; }
+    updateBoard(); updateProg(); updateLog(); updateSeqInfo();
+  }
+  function say2(t, kind) { setFeedback(t, kind || ""); speak(t); }
+  function addCmd(d) {
+    var m = curMission(), M = S.m;
+    if (m.type !== "prog" || M.running) return;
+    if (M.done) { say2("이미 성공했어요. 다음 버튼을 누르세요.", "ok"); return; }
+    var target = M.rec ? M.bundle : M.prog, limit = M.rec ? (m.maxBundle || 6) : (m.maxCmds || 30), n = M.pn;
+    M.pn = 1;
+    if (target.length >= limit) {
+      var msg = "명령은 " + limit + "개까지만 쓸 수 있어요." + (m.maxCmds && !M.rec ? " 반복을 써 보세요." : "");
+      setFeedback(msg, "bad"); sfxThenSpeak("buzz", msg); updateProg(); return;
+    }
+    target.push({ t: "move", d: d, n: n });
+    afterEdit(); sfx("tick");
+    var echo = fmtCmd({ t: "move", d: d, n: n }); setFeedback(target.length + "번째 명령, " + echo, ""); speak(store.moveMode === 1 ? (M.rec ? "묶음 " : "") + target.length + "번째 명령, " + echo : echo, fastRate());
+  }
+  function setRep(n) {
+    if (curMission().type !== "prog" || S.m.running) return;
+    if (!curMission().rep) { say2("반복은 6회에 배워요. 지금은 명령을 하나씩 넣어요.", "bad"); return; }
+    S.m.pn = n; updateProg(); say2(n + "번 반복. 방향키를 누르세요.");
+  }
+  function undoCmd() {
+    if (curMission().type === "chain") { chainUndo(); return; }
+    var M = S.m; if (M.running || M.done) return;
+    var target = M.rec ? M.bundle : M.prog;
+    if (!target.length) { say2("지울 명령이 없어요."); return; }
+    var c = target.pop(); afterEdit(); say2(fmtCmd(c) + " 명령을 지웠어요. 이제 명령은 " + target.length + "개예요.");
+  }
+  function clearCmds() {
+    if (curMission().type === "chain") { chainReset(); return; }
+    var M = S.m; if (M.running || M.done) return;
+    if (M.rec) M.bundle = []; else M.prog = [];
+    afterEdit(); say2("모두 지웠어요.");
+  }
+  var LOOKNAME = { U: "위쪽", D: "아래쪽", L: "왼쪽", R: "오른쪽" };
+  function neighbor(m, M, d) {
+    var np = [M.pos[0] + DIRS[d][0], M.pos[1] + DIRS[d][1]];
+    if (np[0] < 0 || np[1] < 0 || np[0] >= m.w || np[1] >= m.h) return "가장자리라서 갈 수 없어요";
+    if (isWall(m, np)) return "벽이라서 갈 수 없어요";
+    if (m.gate && np[0] === m.gate[0] && np[1] === m.gate[1] && !M.hasKey) return "잠긴 문이라서 갈 수 없어요. 열쇠가 먼저 필요해요";
+    var ex = [];
+    (m.stars || []).forEach(function (s) { if (s[0] === np[0] && s[1] === np[1] && !M.starsGot[s[0] + "," + s[1]]) ex.push("별이"); });
+    (m.buttons || []).forEach(function (b) { if (b.c === np[0] && b.r === np[1]) ex.push(b.k + " 버튼이"); });
+    if (m.keyAt && np[0] === m.keyAt[0] && np[1] === m.keyAt[1] && !M.hasKey) ex.push("열쇠가");
+    if (np[0] === m.goal[0] && np[1] === m.goal[1]) ex.push(goalWord(m) + "이");
+    return "갈 수 있어요" + (ex.length ? ". 그 칸에는 " + ex.join(", ") + " 있어요" : "");
+  }
+  function offsetText(from, to) {
+    var dx = to[0] - from[0], dy = to[1] - from[1], p = [];
+    if (dx > 0) p.push("오른쪽으로 " + dx + "칸");
+    if (dx < 0) p.push("왼쪽으로 " + (-dx) + "칸");
+    if (dy > 0) p.push("아래로 " + dy + "칸");
+    if (dy < 0) p.push("위로 " + (-dy) + "칸");
+    return p.length ? p.join(", ") : "바로 이 칸";
+  }
+  function lookAround() {
+    var m = curMission(), M = S.m;
+    if (m.type !== "prog" || M.running) return;
+    var t = "로봇은 " + posText(M.pos) + "에 있어요. ";
+    ["U", "D", "L", "R"].forEach(function (d) { t += LOOKNAME[d] + "은 " + neighbor(m, M, d) + ". "; });
+    t += goalWord(m) + "은 여기서 " + offsetText(M.pos, m.goal) + " 떨어져 있어요.";
+    var left = (m.stars || []).filter(function (s) { return !M.starsGot[s[0] + "," + s[1]]; });
+    if (m.stars) t += left.length ? " 아직 못 모은 별은 " + left.length + "개예요. " + left.map(function (s) { return offsetText(M.pos, s); }).join(", 그리고 ") + "에 있어요." : " 별은 모두 모았어요.";
+    if (m.buttons) { var nb = m.buttons.filter(function (b) { return !M.pressed[b.k]; }); if (nb.length) t += " 아직 안 누른 버튼은 " + nb.map(function (b) { return b.k; }).join(", ") + "이에요."; }
+    if (m.keyAt) t += M.hasKey ? " 열쇠는 이미 챙겼어요." : " 열쇠는 여기서 " + offsetText(M.pos, m.keyAt) + " 떨어져 있어요. 열쇠를 먼저 챙겨야 잠긴 문이 열려요.";
+    say2(t);
+  }
+  function readProg() {
+    var M = S.m, m = curMission();
+    if (m.type === "chain") { chainRead(); return; }
+    var t = "프로그램은 " + (M.prog.length ? M.prog.map(fmtCmd).join(", ") : "비어 있어요") + ".";
+    if (m.bundle) t += " 묶음은 " + (M.bundle.length ? M.bundle.map(fmtCmd).join(", ") : "비어 있어요") + ".";
+    say2(t);
+  }
+  function toggleRec() {
+    var m = curMission(), M = S.m; if (!m.bundle || M.running || M.done) return;
+    M.rec = !M.rec; updateProg();
+    if (M.rec) say2("묶음 만들기를 시작해요. 묶음에 넣을 명령을 방향키로 입력하세요. 끝나면 엠 키를 한 번 더 누르세요.");
+    else say2("묶음이 완성됐어요. 묶음에는 " + progText(M.bundle) + "가 들어 있어요. 비 키를 누르면 묶음을 실행하는 명령이 들어가요.");
+  }
+  function addBundle() {
+    var m = curMission(), M = S.m; if (!m.bundle || M.running || M.done) return;
+    if (M.rec) { say2("먼저 묶음 만들기를 끝내세요. 엠 키를 눌러요.", "bad"); return; }
+    if (!M.bundle.length) { say2("묶음이 비어 있어요. 먼저 엠 키로 묶음을 만들어요.", "bad"); return; }
+    if (M.prog.length >= (m.maxCmds || 30)) { say2("명령은 " + (m.maxCmds || 30) + "개까지만 쓸 수 있어요.", "bad"); return; }
+    var n = M.pn; M.pn = 1; M.prog.push({ t: "bundle", n: n }); afterEdit(); sfx("tick");
+    var eb = fmtCmd({ t: "bundle", n: n }); setFeedback(M.prog.length + "번째 명령, " + eb, ""); speak(store.moveMode === 1 ? M.prog.length + "번째 명령, " + eb : eb, fastRate());
+  }
+
+  function mSuccess(msg) {
+    var ms = MISSIONS[SESSIONS[S.si].n], M = S.m, last = S.mi >= ms.length - 1;
+    M.done = true;
+    var nb = document.getElementById("mNext");
+    if (nb) { nb.textContent = last ? "자물쇠 풀기" : "다음 미션"; nb.hidden = false; }
+    var full = msg + " " + (last ? "자물쇠 풀기 버튼을 누르세요." : "다음 미션 버튼을 누르세요.");
+    setFeedback(full, "ok"); sfxThenSpeak("fanfare", full);
+    if (nb) focusEl(nb);
+  }
+  function mNext() {
+    var ms = MISSIONS[SESSIONS[S.si].n];
+    if (S.mi < ms.length - 1) { S.mi++; render(); } else { S.screen = "q"; render(); }
+  }
+
+  var STEPSAY = { U: "위로 한 칸", D: "아래로 한 칸", L: "왼쪽으로 한 칸", R: "오른쪽으로 한 칸" };
+  function updateLog() {
+    var ol = document.getElementById("runlog"); if (!ol) return;
+    ol.innerHTML = (S.m.log || []).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
+  }
+  function readLog() {
+    var M = S.m, mm = curMission(); if ((mm.type !== "prog" && mm.type !== "seq") || M.running) return;
+    if (!M.log || !M.log.length) { say2("아직 실행된 명령이 없어요. 엔터로 실행해 보세요."); return; }
+    if (mm.type === "seq") { say2("지금까지 한 일은 " + M.log.length + "개예요. " + M.log.map(function (t, i) { return (i + 1) + "번, " + t; }).join(". ") + "."); return; }
+    say2("지금까지 실행된 명령은 " + M.log.length + "걸음이에요. " + M.log.map(function (t, i) { return (i + 1) + "번, " + t; }).join(". ") + ". 로봇은 " + posText(M.pos) + "에 있어요.");
+  }
+  function runProg() {
+    var m = curMission(), M = S.m;
+    if (m.type === "seq") { runSeq(); return; }
+    if (m.type !== "prog" || M.running) return;
+    if (M.done) { say2("이미 성공했어요. 다음 버튼을 누르세요.", "ok"); return; }
+    if (!M.prog.length) { say2("프로그램이 비어 있어요. 방향키로 명령을 먼저 넣어요.", "bad"); return; }
+    if (M.rec) { say2("묶음 만들기가 아직 끝나지 않았어요. 엠 키를 눌러 끝내세요.", "bad"); return; }
+    var steps = [];
+    M.prog.forEach(function (c, i) {
+      if (c.t === "move") { for (var k = 0; k < c.n; k++) steps.push({ d: c.d, i: i }); }
+      else { for (var k2 = 0; k2 < c.n; k2++) M.bundle.forEach(function (b) { for (var j = 0; j < b.n; j++) steps.push({ d: b.d, i: i }); }); }
+    });
+    stopSpeech(); M.running = true; M.pos = m.start.slice(); M.pressed = {}; M.starsGot = {}; M.hasKey = false; M.badIdx = -1; M.bumpCell = null; M.log = [];
+    updateBoard(); updateProg(); updateLog();
+    setFeedback("로봇이 출발해요.", "");
+    var tok = ++runTok, idx = 0, pend = [];
+    function tick() {
+      if (tok !== runTok || S.screen !== "m") return;
+      if (idx >= steps.length) { finishRun(); return; }
+      var st = steps[idx++], np = [M.pos[0] + DIRS[st.d][0], M.pos[1] + DIRS[st.d][1]];
+      var outside = np[0] < 0 || np[1] < 0 || np[0] >= m.w || np[1] >= m.h;
+      var locked = m.gate && np[0] === m.gate[0] && np[1] === m.gate[1] && !M.hasKey;
+      if (outside || isWall(m, np) || locked) {
+        M.running = false; M.badIdx = st.i; M.bumpCell = np; updateBoard(); updateProg();
+        var side = LOOKNAME[st.d], to = { U: "위로", D: "아래로", L: "왼쪽으로", R: "오른쪽으로" }[st.d];
+        var bm = "쿵! " + (st.i + 1) + "번째 명령에서 " + to + " 가다가 멈췄어요. " +
+          (outside ? "로봇의 " + side + "은 판의 끝이라 더 갈 수 없어요." : (locked ? "로봇의 " + side + " 옆 칸은 잠긴 문이에요. 열쇠를 먼저 챙겨야 문이 열려요." : "로봇의 " + side + " 옆 칸이 벽이에요.")) +
+          " 로봇은 " + posText(M.pos) + "에 멈췄고, 그 뒤 명령은 실행하지 않아요. 지금까지 " + M.log.length + "걸음 갔어요. 실행 기록 듣기 버튼이나 주변 살피기 버튼으로 다시 들을 수 있어요. 프로그램을 고쳐 보세요.";
+        setFeedback(bm, "bad"); sfxThenSpeak("bump", bm); return;
+      }
+      M.pos = np; sfx("step");
+      var extra = [];
+      (m.buttons || []).forEach(function (b) { if (b.c === np[0] && b.r === np[1] && !M.pressed[b.k]) { M.pressed[b.k] = true; extra.push(b.k + " 버튼을 눌렀어요."); } });
+      (m.stars || []).forEach(function (s) { var key = s[0] + "," + s[1]; if (s[0] === np[0] && s[1] === np[1] && !M.starsGot[key]) { M.starsGot[key] = true; extra.push("별을 모았어요."); } });
+      if (m.keyAt && np[0] === m.keyAt[0] && np[1] === m.keyAt[1] && !M.hasKey) { M.hasKey = true; extra.push("열쇠를 챙겼어요."); }
+      if (extra.length) sfx("ding");
+      var first = idx === 1 || steps[idx - 2].i !== st.i;
+      var lastOfCmd = idx >= steps.length || steps[idx].i !== st.i;
+      M.log.push(STEPSAY[st.d]);
+      if (extra.length) pend = pend.concat(extra);
+      updateBoard(); updateLog();
+      var mode = store.moveMode;
+      if (mode === 1) {
+        var msg = (first ? (st.i + 1) + "번째 명령. " : "") + STEPSAY[st.d] + " 이동했어요." + (pend.length ? " " + pend.join(" ") : ""); pend = [];
+        setFeedback(msg, "");
+        var sp = Math.max(1, RATES[store.rateI2] || 1); speak(msg).then(function (ok) { setTimeout(tick, Math.round((ok ? 150 : 480) / sp)); });
+      } else {
+        var say = "";
+        if (mode === 0 && first) say = cmdLabel(M.prog[st.i]);
+        if (lastOfCmd && pend.length) { if (mode === 0) say += (say ? ". " : "") + pend.join(" "); pend = []; }
+        if (say) { setFeedback(say, ""); speak(say, fastRate()).then(function () { setTimeout(tick, 70); }); }
+        else setTimeout(tick, 130);
+      }
+    }
+    tick();
+  }
+  function finishRun() {
+    var m = curMission(), M = S.m;
+    M.running = false; updateProg();
+    var atGoal = M.pos[0] === m.goal[0] && M.pos[1] === m.goal[1];
+    var doorOk = !m.door || allPressed(), starOk = starsAll();
+    if (atGoal && doorOk && starOk) {
+      mSuccess("도착! 성공이에요! " + (m.stars ? "별을 모두 모았어요. " : "") + (m.door ? "문이 열렸어요. " : "") + m.win);
+    } else if (atGoal && !doorOk) {
+      var left = m.buttons.filter(function (b) { return !M.pressed[b.k]; }).map(function (b) { return b.k; }).join(", ");
+      var dm = m.doorMode === "or" ? "문까지 왔는데 문이 안 열려요. 버튼을 하나도 밟지 않았어요. 버튼을 하나라도 밟아야 해요."
+        : "문까지 왔는데 문이 안 열려요. 아직 안 누른 버튼은 " + left + " 버튼이에요. 버튼을 모두 눌러야 해요.";
+      setFeedback(dm, "bad"); sfxThenSpeak("buzz", dm);
+    } else if (atGoal && !starOk) {
+      var sm = goalWord(m) + "에는 도착했지만 별을 다 모으지 못했어요. 별 " + m.stars.length + "개 중 " + starCount() + "개를 모았어요. 별을 지나가도록 고쳐 보세요.";
+      setFeedback(sm, "bad"); sfxThenSpeak("buzz", sm);
+    } else {
+      var fm = "도착하지 못했어요. 로봇은 " + posText(M.pos) + "에서 멈췄어요. " + goalWord(m) + "은 " + posText(m.goal) + "에 있어요." +
+        (m.stars ? " 별 " + m.stars.length + "개 중 " + starCount() + "개를 모았어요." : "") + " 명령을 고쳐 보세요.";
+      setFeedback(fm, "bad"); sfxThenSpeak("buzz", fm);
+    }
+  }
+
+
+  /* 순서 미션 (순차) */
+  function seqHtml(m) {
+    var btns = m.actions.map(function (a, i) { var cn = a.count ? " (" + a.count + "장)" : ""; return padBtn("mseq", (i + 1) + " " + a.name + cn, (i + 1) + "번, " + a.name + (a.count ? ", 카드 " + a.count + "장" : ""), ' data-i="' + i + '"'); }).join("");
+    return (m.calc ? '<p class="rule" id="calcinfo" role="status"></p>' : '') + (m.explore ? '<p class="rule" id="found" role="status"></p>' : '') +
+      '<h3>프로그램</h3><ol class="prog" id="prog" aria-label="프로그램"></ol><h3>실행 기록</h3><ol class="prog" id="runlog" aria-label="실행 기록"></ol>' +
+      '<div class="pad" role="group" aria-label="할 일 고르기">' + btns + '</div>' +
+      '<div class="pad" role="group" aria-label="실행">' +
+      '<button type="button" class="btn primary say" data-action="mrun" data-say="실행. 엔터 키">실행 (엔터)</button>' +
+      padBtn("mundo", "마지막 지우기 (백스페이스)", "마지막 명령 지우기") + padBtn("mclear", "모두 지우기 (딜리트)", "모든 명령 지우기") +
+      padBtn("mreadprog", "프로그램 읽기 (P)", "프로그램 읽기") + padBtn("mlog", "실행 기록 듣기 (E)", "실행 기록 듣기") + '</div>';
+  }
+  function exploreTotal(m) { return m.actions.filter(function (a) { return a.pre && a.pre.length; }).length; }
+  function updateSeqInfo() {
+    var m = curMission(), M = S.m; if (m.type !== "seq") return;
+    var t = document.getElementById("turn");
+    if (t) t.textContent = "다음은 " + (M.prog.length % m.relay + 1) + "번 친구 차례예요. (할 일 " + M.prog.length + " / " + m.actions.length + ")";
+    var ci = document.getElementById("calcinfo");
+    if (ci) ci.textContent = "시작 숫자 " + m.begin + ", 목표 " + m.target + ". " + (M.tries.length ? "지금까지 나온 결과: " + M.tries.join(", ") : "아직 시도하지 않았어요.");
+    var f = document.getElementById("found");
+    if (f) f.textContent = "엉뚱한 결과 발견 " + Object.keys(M.found).length + " / " + exploreTotal(m);
+  }
+  function seqAdd(i) {
+    if (curMission().type === "chain") { chainAdd(i); return; }
+    var m = curMission(), M = S.m; if (m.type !== "seq" || M.running) return;
+    if (M.done) { say2("이미 성공했어요. 다음 버튼을 누르세요.", "ok"); return; }
+    var used = M.prog.filter(function (c) { return c.a === i; }).length, cap = m.actions[i].count || 1;
+    if (used >= cap) { var dup = m.calc ? m.actions[i].name + " 카드는 더 없어요." : m.actions[i].name + "는 이미 넣었어요. 한 번씩만 넣을 수 있어요."; setFeedback(dup, "bad"); sfxThenSpeak("buzz", dup); return; }
+    M.prog.push({ t: "act", a: i }); afterEdit(); sfx("tick");
+    var eo = m.actions[i].name, nx = "";
+    setFeedback(M.prog.length + "번째 명령, " + eo + nx, ""); speak((store.moveMode === 1 ? M.prog.length + "번째 명령, " + eo : eo) + nx, fastRate());
+  }
+  function totalCards(m) { return m.actions.reduce(function (s, a) { return s + (a.count || 1); }, 0); }
+  function runSeq() {
+    var m = curMission(), M = S.m;
+    if (m.type !== "seq" || M.running) return;
+    if (M.done) { say2("이미 성공했어요. 다음 버튼을 누르세요.", "ok"); return; }
+    if (!M.prog.length) { say2("프로그램이 비어 있어요. 숫자 키로 할 일을 먼저 넣어요.", "bad"); return; }
+    if (m.calc && M.prog.length < totalCards(m)) { say2("카드를 세 장 모두 넣어야 해요. 지금은 " + M.prog.length + "장이에요.", "bad"); return; }
+    stopSpeech(); M.running = true; M.log = []; M.badIdx = -1; updateProg(); updateLog(); setFeedback("로봇이 시작해요.", "");
+    var tok = ++runTok, k = 0, done = {}, val = m.begin;
+    function finish() {
+      M.running = false;
+      var left = m.actions.filter(function (a, i) { return !done[i]; }).map(function (a) { return a.name; });
+      if (m.calc) {
+        if (val === m.target) { mSuccess("결과는 " + val + "! 목표와 같아요. 성공이에요! " + m.win); return; }
+        if (M.tries.indexOf(val) < 0) M.tries.push(val);
+        updateSeqInfo();
+        var cm = "결과는 " + val + "이에요. 목표 " + m.target + "이 아니에요. 지금까지 나온 결과는 " + M.tries.join(", ") + "이에요. 딜리트로 지우고 순서를 바꿔 보세요.";
+        setFeedback(cm, "bad"); sfxThenSpeak("buzz", cm); return;
+      }
+      if (m.rules) {
+        var order = M.prog.map(function (c) { return c.a; }), pos = {}, issues = [], fx = "buzz";
+        order.forEach(function (a, i) { pos[a] = i; });
+        m.rules.forEach(function (r) {
+          var bad = (r.type === "first" && pos[r.a] !== undefined && pos[r.a] !== 0) || (r.type === "before" && pos[r.a] !== undefined && pos[r.b] !== undefined && pos[r.a] > pos[r.b]);
+          var txt = r.issue;
+          if (r.type === "last" && pos[r.a] !== undefined) {
+            var after = order.filter(function (x) { return pos[x] > pos[r.a] && (r.except_ || []).indexOf(x) < 0; });
+            if (after.length) { bad = true; txt = r.issue.replace("{names}", after.map(function (x) { return m.actions[x].name; }).join(", ")); }
+          }
+          if (bad) { issues.push(txt); fx = r.sfx || fx; }
+        });
+        if (left.length) issues.push("아직 안 한 일이 있어요. " + left.join(", ") + ".");
+        if (!issues.length) { mSuccess(m.good + " " + m.win); return; }
+        var rm = "결과를 볼게요. " + issues.join(" ") + " 딜리트로 지우고 순서를 바꿔 보세요.";
+        setFeedback(rm, "bad"); sfxThenSpeak(fx, rm); return;
+      }
+      if (m.explore) { var xm = left.length ? "문제없이 끝났어요. 이번에는 일부러 순서를 틀리게 넣어서 엉뚱한 결과를 찾아보세요." : "모두 순서대로 잘 했어요. 이번에는 일부러 틀리게 해서 엉뚱한 결과를 찾아보세요."; setFeedback(xm, ""); sfxThenSpeak("clack", xm); return; }
+      if (left.length) { var lm = "아직 안 한 일이 있어요. " + left.join(", ") + ". 모든 일을 순서대로 넣어요."; setFeedback(lm, "bad"); sfxThenSpeak("buzz", lm); }
+      else mSuccess("성공이에요! 모든 일을 순서대로 해냈어요. " + m.win);
+    }
+    function tick() {
+      if (tok !== runTok || S.screen !== "m") return;
+      if (k >= M.prog.length) { finish(); return; }
+      var c = M.prog[k], a = m.actions[c.a];
+      var free = m.rules || m.calc;
+      var ok = free ? true : (a.pre || []).every(function (p) { return done[p]; });
+      if (!ok) {
+        M.running = false; M.badIdx = k; updateProg();
+        if (m.explore) {
+          var fresh = !M.found[c.a]; M.found[c.a] = true; updateSeqInfo();
+          var cnt = Object.keys(M.found).length, tot = exploreTotal(m);
+          var em = (fresh ? "엉뚱한 결과 발견! " : "이건 이미 찾았어요. ") + a.name + ". " + a.fail + " 엉뚱한 결과 " + cnt + " / " + tot + ".";
+          if (cnt >= tot) { setFeedback(em, "ok"); sfxThenSpeak(a.sfx || "bump", em); setTimeout(function () { if (!M.done) mSuccess("엉뚱한 결과를 모두 찾았어요! " + m.win); }, 4200); return; }
+          setFeedback(em + " 딜리트로 지우고 다시 도전해요.", "bad"); sfxThenSpeak(a.sfx || "bump", em + " 딜리트로 지우고 다시 도전해요."); return;
+        }
+        var bm = "쿵! " + (k + 1) + "번째 명령 " + a.name + ". " + a.fail + " 지금까지 " + k + "개를 했어요. 순서를 고쳐 보세요.";
+        setFeedback(bm, "bad"); sfxThenSpeak(a.sfx || "bump", bm); return;
+      }
+      done[c.a] = true; k++; sfx("step"); M.log.push(a.name);
+      var msg;
+      if (m.calc) { val = a.op === "mul" ? val * a.v : val + a.v; msg = a.done + " 지금 숫자는 " + val + "예요."; M.log[M.log.length - 1] = a.name + " → " + val; }
+      else msg = (store.moveMode === 1 ? k + "번째 명령. " : "") + a.done;
+      updateLog(); setFeedback(msg, "");
+      if (store.moveMode === 2 && !m.calc) setTimeout(tick, 200);
+      else speak(msg, fastRate()).then(function () { setTimeout(tick, 100); });
+    }
+    tick();
+  }
+
+
+  /* 숫자 키우기 미션 (초과하면 처음부터) */
+  function chainHtml(m) {
+    var btns = m.actions.map(function (a, i) { return padBtn("mseq", (i + 1) + " " + a.name, (i + 1) + "번, " + a.name, ' data-i="' + i + '"'); }).join("");
+    return '<p class="rule" id="chaininfo" role="status"></p><h3>이번 도전의 카드</h3><ol class="prog" id="prog" aria-label="이번 도전의 카드"></ol>' +
+      '<div class="pad" role="group" aria-label="카드 고르기">' + btns + '</div>' +
+      '<div class="pad" role="group" aria-label="도움">' + padBtn("mundo", "마지막 카드 취소 (백스페이스)", "마지막 카드 취소") + padBtn("mclear", "처음부터 다시 (딜리트)", "처음부터 다시") + padBtn("mreadprog", "지금까지 읽기 (P)", "지금까지 읽기") + '</div>' +
+      '<h3>지난 도전</h3><ol class="prog" id="hist" aria-label="지난 도전"></ol>';
+  }
+  function chainValue(m, M) {
+    var v = m.begin;
+    M.prog.forEach(function (c) { var a = m.actions[c.a]; v = a.op === "mul" ? v * a.v : v + a.v; });
+    return v;
+  }
+  function updateChain() {
+    var m = curMission(), M = S.m, ci = document.getElementById("chaininfo");
+    if (ci) ci.textContent = "목표 " + m.target + ". 현재 숫자 " + M.val + ". 성공 " + M.wins + " / " + m.needWins + ".";
+    var h = document.getElementById("hist");
+    if (h) h.innerHTML = M.history.slice(-6).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
+  }
+  function chainEnd(m, M, outcome, v) {
+    M.history.push(M.attempt + "번째 도전: " + (M.prog.map(fmtCmd).join(", ")) + " → " + v + " (" + outcome + ")");
+    M.prog = []; M.val = m.begin; M.attempt++;
+  }
+  function chainAdd(i) {
+    var m = curMission(), M = S.m; if (m.type !== "chain") return;
+    if (M.done) { say2("이미 성공했어요. 다음 버튼을 누르세요.", "ok"); return; }
+    var a = m.actions[i];
+    M.prog.push({ t: "act", a: i }); M.picks++;
+    var v = chainValue(m, M), nx = M.picks % m.relay + 1;
+    M.val = v;
+    if (v === m.target) {
+      M.wins++;
+      if (M.wins >= m.needWins) { chainEnd(m, M, "성공", v); updateProg(); updateChain(); mSuccess(a.done + ", 현재 " + v + ". 딱 " + m.target + "! 성공 " + M.wins + "번째예요. " + m.win); return; }
+      var wm = a.done + ", 현재 " + v + ". 딱 " + m.target + "! 성공 " + M.wins + "번째. 처음부터 다시 해요.";
+      chainEnd(m, M, "성공", v); updateProg(); updateChain(); setFeedback(wm, "ok"); sfxThenSpeak("clack", wm); return;
+    }
+    if (v > m.target) {
+      var bm = a.done + ", 현재 " + v + ". " + m.target + "을 넘었어요! 처음부터 다시 해요.";
+      chainEnd(m, M, m.target + " 넘음", v); updateProg(); updateChain(); setFeedback(bm, "bad"); sfxThenSpeak("buzz", bm); return;
+    }
+    updateProg(); updateChain(); sfx("tick");
+    var msg = a.done + ", 현재 " + v;
+    setFeedback(msg, ""); speak(msg, fastRate());
+  }
+  function chainUndo() {
+    var m = curMission(), M = S.m; if (M.done) return;
+    if (!M.prog.length) { say2("취소할 카드가 없어요."); return; }
+    M.prog.pop(); M.picks = Math.max(0, M.picks - 1); M.val = chainValue(m, M); updateProg(); updateChain();
+    say2("취소. 현재 " + M.val);
+  }
+  function chainReset() {
+    var m = curMission(), M = S.m; if (M.done) return;
+    M.prog = []; M.val = m.begin; M.attempt++; updateProg(); updateChain();
+    say2("처음부터. 현재 " + m.begin);
+  }
+  function chainRead() {
+    var m = curMission(), M = S.m;
+    say2("이번 도전은 " + (M.prog.length ? M.prog.map(fmtCmd).join(", ") : "아직 카드가 없어요") + ". 현재 " + M.val + ", 목표 " + m.target + ".");
+  }
+
+  /* 규칙 미션 (조건) */
+  var RACT = { up: "위로 한 걸음", right: "오른쪽으로 한 걸음", wait: "기다렸어요" };
+  function updateRule() {
+    var m = curMission(), M = S.m;
+    var p = document.getElementById("rprog"), l = document.getElementById("rlog");
+    if (p) p.textContent = "신호 " + Math.min(M.rIdx + 1, m.seq.length) + " / " + m.seq.length;
+    if (l) l.textContent = "지금까지: " + (M.rLog.length ? M.rLog.map(function (a) { return RACT[a]; }).join(", ") : "아직 없음");
+  }
+  function ruleSignal() {
+    var m = curMission(), M = S.m; if (m.type !== "rule" || M.done) return;
+    var sig = m.seq[M.rIdx], sg = SIGS[sig], t = sg.say + " 규칙대로 어떻게 할까요?";
+    setFeedback(t, ""); sfxThenSpeak(sg.sfx, t);
+  }
+  function ruleAct(a) {
+    var m = curMission(), M = S.m; if (m.type !== "rule" || M.done) return;
+    var sig = m.seq[M.rIdx], want = m.rule[sig];
+    if (a !== want) {
+      var bad = "삐! 규칙을 다시 들어 보세요. " + m.ruleText;
+      setFeedback(bad, "bad"); sfxThenSpeak("buzz", bad); return;
+    }
+    M.rLog.push(a); M.rIdx++; updateRule();
+    if (M.rIdx >= m.seq.length) { mSuccess("맞아요! " + RACT[a] + ". 끝까지 도착했어요! 성공이에요! " + m.win); return; }
+    var msg = "맞아요! " + RACT[a] + ".";
+    setFeedback(msg, "ok");
+    var ms = sfx("clack"), my = token;
+    setTimeout(function () { if (my === token) speak(msg).then(function (ok) { if (ok && S.screen === "m" && !S.m.done) ruleSignal(); }); }, ms);
+  }
+
+  /* 상자 미션 (변수) */
+  function varsText(M) {
+    var ks = Object.keys(M.vars);
+    return ks.length ? ks.map(function (k) { return k + " 상자 = " + M.vars[k]; }).join(", ") : "상자가 모두 비어 있어요.";
+  }
+  function updateBox() {
+    var M = S.m, st = document.getElementById("boxst"), inp = document.getElementById("boxin");
+    if (st) st.textContent = "상자 상태: " + varsText(M);
+    if (inp) { inp.textContent = M.buf ? M.buf.split("").join(" ") : "입력: 없음"; inp.setAttribute("aria-label", "입력한 숫자 " + (M.buf ? digitsSay(M.buf) : "없음")); }
+  }
+  function boxDigit(k) {
+    var M = S.m; if (curMission().type !== "box" || M.done || M.buf.length >= 6) return;
+    M.buf += k; updateBox(); sfx("tick"); speak(k);
+  }
+  function boxBack() { var M = S.m; if (M.done || !M.buf) return; M.buf = M.buf.slice(0, -1); updateBox(); speak("지웠어요."); }
+  function boxSubmit() {
+    var m = curMission(), M = S.m; if (m.type !== "box" || M.done) return;
+    var buf = M.buf; if (!buf) { say2("숫자를 먼저 눌러 주세요.", "bad"); return; }
+    var st = m.steps[M.step], want = st.expect.charAt(0) === "@" ? M.vars[st.expect.slice(1)] : st.expect;
+    M.buf = "";
+    if (buf === want) {
+      if (st.set) M.vars[st.set[0]] = st.set[1];
+      M.step++; updateBox();
+      if (M.step >= m.steps.length) { mSuccess("맞아요! 성공이에요! " + (st.ok ? st.ok + " " : "") + m.win); }
+      else { setFeedback(st.ok, "ok"); sfxThenSpeak("clack", st.ok); }
+    } else {
+      updateBox();
+      var bad = (st.badmap && st.badmap[buf]) || st.bad;
+      setFeedback(bad, "bad"); sfxThenSpeak("buzz", "삐! " + bad);
+    }
+  }
+
+  /* 미션 단축키 */
+  function mKey(e) {
+    var m = curMission(), k = e.key, L = letterOf(e), ae = document.activeElement;
+    if (ae && ae.tagName === "BUTTON" && (k === "Enter" || k === " ")) return;
+    var ok = true;
+    if (m.type === "prog") {
+      if (k === "ArrowUp") addCmd("U"); else if (k === "ArrowDown") addCmd("D"); else if (k === "ArrowLeft") addCmd("L"); else if (k === "ArrowRight") addCmd("R");
+      else if (k === "Enter") runProg(); else if (k === "Backspace") undoCmd(); else if (k === "Delete") clearCmds();
+      else if (/^[1-9]$/.test(k)) setRep(+k);
+      else if (L === "m") toggleRec(); else if (L === "b") addBundle(); else if (L === "s") lookAround(); else if (L === "e") readLog();
+      else if (L === "p") readProg(); else if (L === "h") speak(m.tip); else ok = false;
+    } else if (m.type === "chain") {
+      if (/^[1-9]$/.test(k) && +k <= m.actions.length) chainAdd(+k - 1);
+      else if (k === "Backspace") chainUndo(); else if (k === "Delete") chainReset();
+      else if (L === "p") chainRead(); else if (L === "h") speak(m.tip); else ok = false;
+    } else if (m.type === "seq") {
+      if (/^[1-9]$/.test(k) && +k <= m.actions.length) seqAdd(+k - 1);
+      else if (k === "Enter") runSeq(); else if (k === "Backspace") undoCmd(); else if (k === "Delete") clearCmds();
+      else if (L === "p") readProg(); else if (L === "e") readLog(); else if (L === "h") speak(m.tip); else ok = false;
+    } else if (m.type === "rule") {
+      if (k === "ArrowUp") ruleAct("up"); else if (k === "ArrowRight") ruleAct("right"); else if (k === " ") ruleAct("wait");
+      else if (L === "p") ruleSignal(); else if (L === "h") speak(m.tip); else ok = false;
+    } else {
+      if (/^[0-9]$/.test(k)) boxDigit(k); else if (k === "Backspace") boxBack(); else if (k === "Enter") boxSubmit();
+      else if (L === "h") speak(m.tip); else ok = false;
+    }
+    if (ok) { e.preventDefault(); ctx(); }
+  }
+
+  /* 뒤로 가기 / 새로고침 */
+  function goBack() {
+    stopSpeech(); runTok++;
+    var to = { help: S.helpFrom, select: "start", intro: "select", m: "intro", q: "intro", clear: "select" }[S.screen];
+    if (!to) { speak("처음 화면이에요."); return; }
+    S.screen = to; render();
+  }
+  function reloadScreen() {
+    stopSpeech(); runTok++;
+    if (S.screen === "q") { S.wrong = []; S.hintLv = 0; S.hintsShown = []; S.answered = false; S.tried = false; }
+    if (S.screen === "select") S.resetArmed = false;
+    render();
+  }
+  document.getElementById("btnBack").addEventListener("click", function () { ctx(); goBack(); });
+  document.getElementById("btnReload").addEventListener("click", function () { ctx(); reloadScreen(); });
+
+  /* 이동 읽기 방식 선택 */
+  (function () {
+    var ms = document.getElementById("moveSel"); if (!ms) return;
+    ms.value = String(store.moveMode);
+    ms.addEventListener("change", function () {
+      ctx(); store.moveMode = +this.value; save();
+      var t = "이동 읽기, " + this.options[this.selectedIndex].text; announce(t); speak(t);
+    });
+  })();
+
+  /* ───────── 이벤트 ───────── */
+  main.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-action]"); if (!b) return;
+    ctx();
+    var a = b.getAttribute("data-action");
+    if (a === "begin") { S.screen = "select"; render(); }
+    else if (a === "session") startSession(+b.getAttribute("data-n"));
+    else if (a === "startQ") { S.screen = "q"; render(); }
+    else if (a === "startM") { S.mi = 0; S.screen = "m"; render(); }
+    else if (a === "mcmd") { addCmd(b.getAttribute("data-d")); focusHeading(); }
+    else if (a === "mrep") { setRep(+b.getAttribute("data-n")); focusHeading(); }
+    else if (a === "mrun") { runProg(); focusHeading(); }
+    else if (a === "mundo") { undoCmd(); focusHeading(); }
+    else if (a === "mclear") { clearCmds(); focusHeading(); }
+    else if (a === "mreadprog") { readProg(); focusHeading(); }
+    else if (a === "mlook") { lookAround(); focusHeading(); }
+    else if (a === "mlog") { readLog(); focusHeading(); }
+    else if (a === "mseq") { seqAdd(+b.getAttribute("data-i")); focusHeading(); }
+    else if (a === "mrec") { toggleRec(); focusHeading(); }
+    else if (a === "mbundle") { addBundle(); focusHeading(); }
+    else if (a === "mrule") { ruleAct(b.getAttribute("data-a")); focusHeading(); }
+    else if (a === "msignal") { ruleSignal(); focusHeading(); }
+    else if (a === "mdigit") { boxDigit(b.getAttribute("data-k")); focusHeading(); }
+    else if (a === "mback") { boxBack(); focusHeading(); }
+    else if (a === "msubmit") { boxSubmit(); focusHeading(); }
+    else if (a === "mnarr") { speak(S.narr); }
+    else if (a === "mnext") { mNext(); }
+    else if (a === "mskip") { S.screen = "q"; render(); }
+    else if (a === "toSelect") { S.resetArmed = false; S.screen = "select"; render(); }
+    else if (a === "nextSession") startSession(SESSIONS[S.si].n + 1);
+    else if (a === "opt") choose(+b.getAttribute("data-i"));
+    else if (a === "repeat") { speak(S.narr); }
+    else if (a === "hint") hintBtn();
+    else if (a === "next") nextQ();
+    else if (a === "helpBack") { S.screen = S.helpFrom; render(); }
+    else if (a === "reset") {
+      if (!S.resetArmed) { S.resetArmed = true; var t = "정말 지울까요? 한 번 더 누르면 모은 열쇠 글자가 모두 지워져요."; b.textContent = "정말 지울까요? 한 번 더 누르세요"; speak(t); announce(t); }
+      else { store.cleared = {}; save(); S.resetArmed = false; render(); }
+    }
+  });
+
+  /* 설정 버튼 */
+  function refreshBar() {
+    var t = document.getElementById("btnTts"), f = document.getElementById("btnSfx"), r = document.getElementById("rateSel");
+    t.textContent = "음성 안내: " + (store.tts ? "켜짐" : "꺼짐"); t.setAttribute("aria-pressed", store.tts ? "true" : "false");
+    f.textContent = "효과음: " + (store.sfx ? "켜짐" : "꺼짐"); f.setAttribute("aria-pressed", store.sfx ? "true" : "false");
+    r.value = String(store.rateI2);
+  }
+  document.getElementById("btnTts").addEventListener("click", function () {
+    ctx(); store.tts = !store.tts; save(); refreshBar();
+    if (store.tts) speak("음성 안내를 켰어요."); else { stopSpeech(); announce("음성 안내를 껐어요."); }
+  });
+  document.getElementById("btnSfx").addEventListener("click", function () {
+    ctx(); store.sfx = !store.sfx; save(); refreshBar();
+    var t = store.sfx ? "효과음을 켰어요." : "효과음을 껐어요."; announce(t); speak(t); if (store.sfx) SFX.ding();
+  });
+  document.getElementById("rateSel").addEventListener("change", function () {
+    ctx(); store.rateI2 = +this.value; save();
+    var t = "읽는 속도 " + RATE_NAMES[store.rateI2]; announce(t); speak(t + "예요. 이 속도로 읽어요.");
+  });
+  document.getElementById("btnHelp").addEventListener("click", function () {
+    ctx(); if (S.screen !== "help") { S.helpFrom = S.screen; S.screen = "help"; render(); }
+  });
+
+  /* 마우스를 올리거나 탭으로 이동하면 읽어 주기 */
+  function sayEl(el) {
+    var t = el.getAttribute("data-say") || el.getAttribute("aria-label") || el.textContent;
+    speak(t);
+  }
+  var lastSay = null, lastMove = 0, lastX = -1, lastY = -1;
+  document.addEventListener("mousemove", function (e) {
+    if (e.screenX !== lastX || e.screenY !== lastY) { lastMove = performance.now(); lastX = e.screenX; lastY = e.screenY; }
+  });
+  document.addEventListener("mouseover", function (e) {
+    var el = e.target.closest && e.target.closest(".say,[data-say]");
+    if (!el || el === lastSay) return;
+    if (performance.now() - lastMove > 250) return;
+    lastSay = el; sayEl(el);
+  });
+  document.addEventListener("mouseout", function (e) {
+    var el = e.target.closest && e.target.closest(".say,[data-say]");
+    if (el && lastSay === el && !el.contains(e.relatedTarget)) lastSay = null;
+  });
+  document.addEventListener("focusin", function (e) {
+    if (performance.now() < muteUntil) return;
+    var el = e.target.closest && e.target.closest(".say,[data-say]");
+    if (el) sayEl(el);
+  });
+
+  /* 키보드 단축키 */
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    var k = e.key, L = letterOf(e);
+    if (k === "Escape") { stopSpeech(); return; }
+    if (L === "r") { if (S.narr) { speak(S.narr); } return; }
+    if (S.screen === "m") { mKey(e); return; }
+    if (S.screen !== "q") return;
+    if (/^[1-9]$/.test(k)) { var q = SESSIONS[S.si].qs[S.qi], i = +k - 1; if (i < q.o.length) { e.preventDefault(); ctx(); choose(i); } }
+    else if (L === "h") hintBtn();
+    else if (L === "n") nextQ();
+  });
+
+  refreshBar();
+  render();
+})();
+</script>
+</body>
+</html>

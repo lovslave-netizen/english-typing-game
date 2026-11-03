@@ -1,0 +1,35 @@
+# 자동 생성 (jynew) - 필요하면 고쳐서 쓰세요
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+build/
+dist/
+dist_installer/
+*.spec.bak
+.gradle/
+.idea/
+.vscode/
+*.log
+*.tmp
+Thumbs.db
+
+# 큰 파일/설치 파일/모델은 git 에 넣지 않는다 (Releases 나 미니PC 에 보관)
+*.exe
+*.msi
+*.7z
+*.zip
+*.tflite
+*.apk
+
+# 비밀 정보
+.env
+.env.*
+*.pem
+*.key
+*.ppk
+*_rsa
+*_ed25519
+id_rsa*
+id_ed25519*

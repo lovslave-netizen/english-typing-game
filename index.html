@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>영어 타자 게임</title>
+<style>
+  :root { --bg: #fffdf5; --fg: #111; --muted: #3d3d3d; --card: #fff; --line: #222; --accent: #0b4fd6; --accent-fg: #fff; --focus: #ff8f00; --ok: #0a6b34; color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0f1419; --fg: #f7f7f7; --muted: #d6d6d6; --card: #1a222c; --line: #e9e9e9; --accent: #7fb0ff; --accent-fg: #0a1a33; --focus: #ffd54a; --ok: #6ff0a0; color-scheme: dark; } }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif; font-size: 22px; line-height: 1.6; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 30px; margin: 8px 0 12px; }
+  .btn { font: inherit; font-size: 22px; font-weight: 700; padding: 12px 18px; min-height: 56px; background: var(--card); color: var(--fg); border: 3px solid var(--line); border-radius: 12px; cursor: pointer; margin: 4px; text-align: left; }
+  .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  .btn:focus-visible { outline: 5px solid var(--focus); outline-offset: 2px; }
+  .bar { margin: 12px 0; }
+  .meta { color: var(--muted); font-size: 20px; }
+  .sent { font-size: 48px; font-weight: 800; letter-spacing: 2px; margin: 18px 0 6px; word-break: break-word; }
+  .typed { font-size: 28px; color: var(--muted); min-height: 44px; word-break: break-all; }
+  .fb { min-height: 56px; padding: 10px 14px; border-left: 8px solid var(--accent); background: var(--card); border-radius: 8px; margin: 12px 0; }
+  mark.cur { background: var(--focus); color: #111; border-radius: 4px; padding: 0 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>영어 타자 게임</h1>
+
+  <section id="start" aria-label="시작">
+    <p class="meta">화살표(← →)로 고르고 엔터를 누르면 시작해요.</p>
+    <p id="startMsg" role="status" aria-live="polite">엔터를 누르면 시작합니다.</p>
+    <button type="button" class="btn primary" id="btnStart">영어 타자 연습</button>
+    <button type="button" class="btn" id="btnKorean">한글 타자 연습</button>
+  </section>
+
+  <section id="app" aria-label="게임" hidden>
+    <main>
+      <p class="sent" id="sent" aria-label="따라 칠 문장"></p>
+      <p class="typed" id="typed" aria-label="친 글자"></p>
+      <textarea id="hangulInput" aria-label="한글 입력" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"></textarea>
+      <p class="meta" id="cursor" aria-live="polite"></p>
+      <p class="meta" id="scoreline" aria-live="polite"></p>
+      <p class="meta" id="speedline"></p>
+      <div class="fb" id="fb" role="status" aria-live="polite"></div>
+
+      <div class="bar" role="group" aria-label="기본 버튼">
+        <button type="button" class="btn" id="btnAgain">문장 다시 듣기 (1)</button>
+        <button type="button" class="btn" id="btnScore">점수 듣기 (2)</button>
+        <button type="button" class="btn" id="btnStop">소리 멈추기 (3)</button>
+        <button type="button" class="btn" id="btnTyped">지금까지 쓴 글자 읽기 (4)</button>
+        <button type="button" class="btn" id="btnMusic">배경음악: 켜짐 (6)</button>
+        <button type="button" class="btn" id="btnKeys">단축키 안내 (7)</button>
+        <button type="button" class="btn" id="btnHome">처음 화면으로 (8)</button>
+        <button type="button" class="btn" id="btnNext">지금 칠 글자 (9)</button>
+        <button type="button" class="btn" id="btnCurL">커서 왼쪽 (←)</button>
+        <button type="button" class="btn" id="btnCurR">커서 오른쪽 (→)</button>
+        <button type="button" class="btn" id="btnSentL">예시 글자 앞으로 (Ctrl+←)</button>
+        <button type="button" class="btn" id="btnSentR">예시 글자 뒤로 (Ctrl+→)</button>
+        <button type="button" class="btn" id="btnSlower">느리게 말하기 (-)</button>
+        <button type="button" class="btn" id="btnFaster">빠르게 말하기 (=)</button>
+      </div>
+    </main>
+  </section>
+
+  <section id="over" aria-label="게임 끝" hidden>
+    <h2>게임 끝!</h2>
+    <p id="overText" role="status" aria-live="polite"></p>
+    <label for="nameIn">이름 (별명, 열 글자 이내)</label>
+    <input id="nameIn" maxlength="10" autocomplete="off" style="font:inherit;font-size:24px;min-height:56px;width:100%;box-sizing:border-box;margin:6px 0 12px;padding:8px 12px;border:3px solid currentColor;border-radius:12px;background:transparent;color:inherit">
+    <button type="button" class="btn primary" id="btnSave">점수 저장</button>
+    <button type="button" class="btn" id="btnBoard">점수판 듣기</button>
+    <button type="button" class="btn" id="btnAgainGame">다시 하기 (엔터)</button>
+    <button type="button" class="btn" id="btnHomeOver">처음 화면으로 (8)</button>
+    <h2>점수판 (상위 10명)</h2>
+    <ol id="board"></ol>
+  </section>
+</div>
+
+<script src="voice/manifest.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var SENT = ["I am a boy.", "I am a girl.", "I am happy.", "I am a student.", "I like the sun.", "I like cats.", "I like dogs.", "I like apples.", "I have a red ball.", "I have a dog.", "I have a cat.", "I have a book.", "I see a cat.", "I see a dog.", "I see a bus.", "I see a big tree.", "I can run.", "I can jump.", "I can swim.", "I can read.", "I eat an apple.", "I drink water.", "I want some milk.", "I want a cake.", "I go to school.", "I read a book.", "I play ball.", "I walk home.", "You are happy.", "You are my friend.", "You can run fast.", "You like red.", "We are friends.", "We go to school.", "We like apples.", "We can play.", "She is my mom.", "He is my dad.", "It is a big tree.", "This is my bag.", "That is a bus.", "It is red.", "It is blue.", "The sun is hot.", "The sky is blue.", "The cat is big.", "The dog is small.", "Look at the cat.", "Come here.", "Let us go.", "Thank you.", "Good morning."];
+  var KSENT = ["나는 소년이에요.", "나는 소녀예요.", "나는 행복해요.", "나는 학생이에요.", "나는 해를 좋아해요.", "나는 고양이를 좋아해요.", "나는 강아지를 좋아해요.", "나는 사과를 좋아해요.", "나는 빨간 공이 있어요.", "나는 강아지가 있어요.", "나는 고양이가 있어요.", "나는 책이 있어요.", "나는 고양이를 봐요.", "나는 강아지를 봐요.", "나는 버스를 봐요.", "나는 큰 나무를 봐요.", "나는 달릴 수 있어요.", "나는 뛸 수 있어요.", "나는 수영할 수 있어요.", "나는 읽을 수 있어요.", "나는 사과를 먹어요.", "나는 물을 마셔요.", "나는 우유를 원해요.", "나는 케이크를 원해요.", "나는 학교에 가요.", "나는 책을 읽어요.", "나는 공놀이를 해요.", "나는 집에 걸어가요.", "너는 행복해요.", "너는 나의 친구예요.", "너는 빨리 달릴 수 있어요.", "너는 빨간색을 좋아해요.", "우리는 친구예요.", "우리는 학교에 가요.", "우리는 사과를 좋아해요.", "우리는 놀 수 있어요.", "그녀는 나의 엄마예요.", "그는 나의 아빠예요.", "그것은 큰 나무예요.", "이것은 나의 가방이에요.", "저것은 버스예요.", "그것은 빨간색이에요.", "그것은 파란색이에요.", "해는 뜨거워요.", "하늘은 파래요.", "고양이는 커요.", "강아지는 작아요.", "고양이를 보세요.", "이리 오세요.", "가자.", "고마워요.", "좋은 아침이에요."];
+  var NAMES = { " ": "스페이스", ".": "쩜!", ",": "쉼표", "!": "느낌표", "?": "물음표", "'": "작은따옴표" };
+  var LET = { A: "에이", B: "비", C: "씨", D: "디", E: "이", F: "에프", G: "지", H: "에이치", I: "아이", J: "제이", K: "케이", L: "엘", M: "엠", N: "엔", O: "오", P: "피", Q: "큐", R: "알", S: "에스", T: "티", U: "유", V: "브이", W: "더블유", X: "엑스", Y: "와이", Z: "제트" };
+  var LET_EN = { A: "ay", B: "bee", C: "see", D: "dee", E: "ee", F: "ef", G: "jee", H: "aitch", I: "eye", J: "jay", K: "kay", L: "el", M: "em", N: "en", O: "oh", P: "pee", Q: "cue", R: "ar", S: "ess", T: "tee", U: "you", V: "vee", W: "double you", X: "ex", Y: "why", Z: "zee" };
+  var NAMES_EN = { " ": "space", ".": "period", ",": "comma", "!": "exclamation mark", "?": "question mark", "'": "apostrophe" };
+  // 영어 모드에서는 글자를 Jenny 영어 이름으로 읽어요 (a → ay). 한글 모드는 한국어 이름이에요.
+  function engChar(ch) {
+    var u = ch.toUpperCase();
+    // 글자 이름은 한국어 음성으로 읽어요: 에이, 알, 쩜!, 스페이스 (영어 음성으로는 발음이 어색해서요)
+    return { t: NAMES[ch] || LET[u] || u, lang: "ko", r: 1.25 };
+  }
+  function charFor(ch) { return koMode ? charParts(ch) : engChar(ch); }
+  var PH = { "i": "아이", "am": "앰", "a": "어", "an": "앤", "boy": "보이", "girl": "걸", "see": "씨", "cat": "캣", "we": "위", "are": "아", "happy": "해피", "good": "굿", "you": "유", "the": "더", "is": "이즈", "it": "잇", "dog": "독", "my": "마이", "mom": "맘", "dad": "대드" };
+  var PUNC = { ".": " 점 ", ",": " 쉼표 ", "!": " 느낌표 ", "?": " 물음표 " };
+  var SFX_COMBO = "voice/sfx/combo.mp3";
+
+  // 이 게임에 들어 있는 기능 (5회차 완성본): 소리 올라감, 땡 소리, 콤보, 점수, 시간 보너스
+  var FEATURES = ["H1", "H2", "H3", "H4", "H5"];
+  function has(k) { return FEATURES.indexOf(k) >= 0; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var st = { si: 0, idx: 0, raw: [], cA: null, combo: 0, streak: 0, pitch: 0, score: 0, bonus: 0, wrong: false, t0: 0, clockOn: false, tickTimer: null };
+  var SPEEDS = [{ n: "느리게", r: 0.8 }, { n: "보통", r: 1.2 }, { n: "빠르게", r: 1.6 }, { n: "매우빠르게", r: 2.2 }, { n: "엄청빠르게", r: 3 }];
+  var speedIdx = 1;
+  function speedRate() { return SPEEDS[speedIdx].r; }
+  var musicOn = true, musicTimer = null;   // 배경음악은 처음부터 켜져 있어요
+  var MEL = [523, 659, 784, 659, 698, 784, 880, 784, 784, 659, 523, 659, 587, 698, 784, 698];
+  var BASS = [262, 262, 392, 392, 349, 349, 392, 392];
+
+  var koMode = false;          // 한글로 치는 모드인지
+  function TGT() { return koMode ? KSENT : SENT; }
+  // 문장은 말하기 속도와 따로, 항상 천천히 읽어요 (안내 말만 속도 조절을 따라요)
+  var SENT_RATE = 0.9;
+  // 마침표로 끝나는 영어 문장은 마침표 앞까지 읽고, "쩜!"이라고 덧붙여 읽어요
+  // 한글 문장도 마침표 앞까지 읽고 "쩜!"을 덧붙여요
+  function sentParts() {
+    var s = koMode ? KSENT[st.si] : SENT[st.si];
+    var part = koMode ? { lang: "ko" } : { lang: "en", sent: true };
+    var body = s.charAt(s.length - 1) === "." ? s.slice(0, -1) : s;
+    var out = [{ t: body, lang: part.lang, sent: part.sent, slow: true }];
+    if (body !== s) out.push({ t: "쩜!", lang: "ko", slow: true });
+    return out;
+  }
+  function complete() { return st.idx >= TGT()[st.si].length; }
+  function hasSentenceFile(key) { return !!(window.VOICE_MAP && window.VOICE_MAP[key]); }
+
+  /* 효과음 */
+  var ac = null;
+  function ctx() {
+    if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+    if (ac && ac.state === "suspended") { try { ac.resume(); } catch (e) {} }
+    return ac;
+  }
+  function tone(f, t, d, vol, type) {
+    var a = ctx(); if (!a) return;
+    var o = a.createOscillator(), g = a.createGain(), t0 = a.currentTime + t;
+    o.type = type || "sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(vol || 0.2, t0 + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + d + 0.05);
+  }
+  function bell(f) { tone(f, 0, 0.35, 0.3, "sine"); tone(f * 2.01, 0, 0.22, 0.12, "sine"); }
+  function ddaeng() { tone(170, 0, 0.9, 0.5, "sawtooth"); tone(340, 0, 0.9, 0.3, "square"); tone(85, 0.02, 0.8, 0.45, "square"); }
+  function ding() { tone(1175, 0, 0.18, 0.28); tone(1568, 0.16, 0.26, 0.28); }   // 딩동댕
+  function tick() { tone(2000, 0, 0.03, 0.08, "triangle"); }                      // 띠
+  // 문장을 다 치면 폭죽 소리와 "와~" 소리
+  function noiseBurst(t, dur, f0, f1, vol) {
+    var a = ctx(); if (!a) return;
+    var now = a.currentTime + t, len = Math.max(1, Math.floor(a.sampleRate * dur));
+    var buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    var src = a.createBufferSource(); src.buffer = buf;
+    var flt = a.createBiquadFilter(); flt.type = "bandpass";
+    flt.frequency.setValueAtTime(f0, now); flt.frequency.exponentialRampToValueAtTime(f1, now + dur);
+    var g = a.createGain();
+    g.gain.setValueAtTime(0.0001, now); g.gain.linearRampToValueAtTime(vol, now + dur * 0.2); g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    src.connect(flt); flt.connect(g); g.connect(a.destination);
+    src.start(now); src.stop(now + dur + 0.05);
+  }
+  function chirp(t, f0, f1, dur, vol) {
+    var a = ctx(); if (!a) return;
+    var now = a.currentTime + t, o = a.createOscillator(), g = a.createGain();
+    o.type = "sawtooth"; o.frequency.setValueAtTime(f0, now); o.frequency.exponentialRampToValueAtTime(f1, now + dur);
+    g.gain.setValueAtTime(vol, now); g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    o.connect(g); g.connect(a.destination); o.start(now); o.stop(now + dur + 0.05);
+  }
+  function celebrate() {
+    noiseBurst(0, 0.12, 2500, 300, 0.5);      // 펑
+    chirp(0.02, 300, 1500, 0.3, 0.08);         // 슈욱
+    noiseBurst(0.25, 1.1, 500, 1200, 0.3);     // 와~
+    noiseBurst(0.3, 0.9, 900, 1800, 0.15);     // 와~
+  }
+  // 맞을수록 소리가 5%씩 올라가요 (최대 20단계). 틀리면 땡~ 하고 처음으로 돌아가요.
+  function keySound(ok) {
+    if (koMode) { tick(); return; }   // 한글은 글자마다 띠띠띠, 단어가 끝날 때 딩동댕/땡
+    if (ok) { if (has("H1")) bell(400 * Math.pow(1.05, Math.min(st.pitch, 20))); }
+    else if (has("H2")) ddaeng();
+  }
+  function playCombo() { try { new Audio(SFX_COMBO).play(); } catch (e) {} }
+
+  /* 음성 파일 (voice/manifest.js) 과 기계 음성 */
+  var synth = ("speechSynthesis" in window) ? window.speechSynthesis : null, voices = [], tok = 0;
+  function loadVoices() { if (synth) voices = synth.getVoices() || []; }
+  loadVoices();
+  if (synth && synth.addEventListener) synth.addEventListener("voiceschanged", loadVoices);
+  function voiceFor(lang) {
+    var re = lang === "en" ? /^en/i : /^ko/i, first = null;
+    for (var i = 0; i < voices.length; i++) {
+      if (!re.test(voices[i].lang)) continue;
+      if (lang === "en" && /google/i.test(voices[i].name)) return voices[i];
+      if (!first) first = voices[i];
+    }
+    return first;
+  }
+  function hasEnVoice() { return !!voiceFor("en"); }
+  function phonetic(text) {
+    return text.replace(/[A-Za-z]+|[.,!?]/g, function (w) {
+      if (PUNC[w]) return PUNC[w];
+      var k = w.toLowerCase();
+      return PH[k] ? PH[k] : w.split("").join(" ");
+    });
+  }
+  function sentenceText(t) {
+    return t.split(/\s+/).filter(Boolean).map(function (w) {
+      return (/^[A-Z]/.test(w) ? "대문자, " : "") + phonetic(w);
+    }).join(" ");
+  }
+  function expandParts(parts) {
+    var out = [];
+    parts.forEach(function (q) {
+      // 음성 파일이나 영어 음성이 있으면 예시 문장을 영어로 읽어요
+      if (!q.sent || hasSentenceFile("EN|" + q.t) || hasEnVoice()) { out.push(q); return; }
+      out.push(ko(sentenceText(q.t)));
+    });
+    return out;
+  }
+  var curAudio = null;
+  function stopAudio() { if (curAudio) { try { curAudio.pause(); } catch (e) {} curAudio = null; } }
+  function playFile(src, rate, done) {
+    var a = new Audio(src), fin = false;
+    function end(ok) { if (fin) return; fin = true; curAudio = null; done(ok); }
+    a.playbackRate = rate;
+    a.onended = function () { end(true); };
+    a.onerror = function () { end(false); };
+    curAudio = a;
+    var pr = a.play();
+    if (pr && pr.catch) pr.catch(function () { end(false); });
+  }
+  function fileFor(p) {
+    if (p.alt && hasSentenceFile("EN|" + p.alt)) return window.VOICE_MAP["EN|" + p.alt];
+    if (p.lang === "en" && hasSentenceFile("EN|" + p.t)) return window.VOICE_MAP["EN|" + p.t];
+    if (p.lang === "ko" && hasSentenceFile(p.t)) return window.VOICE_MAP[p.t];
+    return null;
+  }
+  function speakSeq(parts) {
+    parts = expandParts(parts);
+    var my = ++tok;
+    stopAudio();
+    try { if (synth) synth.cancel(); } catch (e) {}
+    (function next(i) {
+      if (my !== tok || i >= parts.length) return;
+      var p = parts[i];
+      if (p.cb) { p.cb(); next(i + 1); return; }
+      var rate = (p.slow ? SENT_RATE : speedRate()) * (p.r || 1);
+      var src = fileFor(p);
+      if (src) {
+        playFile(src, rate, function (ok) { if (ok) next(i + 1); else speakMachine(p, i, my, next, rate); });
+        return;
+      }
+      speakMachine(p, i, my, next, rate);
+    })(0);
+  }
+  function speakMachine(p, i, my, next, rate) {
+    if (my !== tok) return;
+    if (!synth) { next(i + 1); return; }
+    var txt, lang;
+    var useEn = !!p.alt && hasEnVoice();
+    if (useEn) { txt = p.alt; lang = "en-US"; }
+    else if (p.lang === "ko") { txt = p.t; lang = "ko-KR"; }
+    else if (hasEnVoice()) { txt = p.t; lang = "en-US"; }
+    else { txt = phonetic(p.t); lang = "ko-KR"; }
+    var u = new SpeechSynthesisUtterance(txt);
+    u.lang = lang;
+    var v = (useEn || p.lang === "en") ? voiceFor("en") : voiceFor("ko"); if (v) u.voice = v;
+    u.rate = rate;
+    u.onend = function () { next(i + 1); };
+    u.onerror = function () { next(i + 1); };
+    try { synth.speak(u); } catch (e) { next(i + 1); }
+  }
+  function stopAll() { tok++; stopAudio(); try { if (synth) synth.cancel(); } catch (e) {} }
+  function ko(t) { return { t: t, lang: "ko" }; }
+  function enSent(t) { return { t: t, lang: "en", sent: true }; }
+  // 글자 하나는 한국어 이름으로 읽어요 (A는 "에이", I는 "아이"). 기호는 기호 이름으로 읽어요.
+  function charParts(ch) {
+    var u = ch.toUpperCase();
+    return { t: NAMES[ch] || LET[u] || u, lang: "ko", r: 1.25 };
+  }
+  function readSentence() { speakSeq(sentParts()); }
+  function say(t) { $("fb").textContent = t; speakSeq([ko(t)]); }
+
+  /* 화면 */
+  function render() {
+    var sh = "", sc = TGT()[st.si];
+    for (var i = 0; i < sc.length; i++) {
+      var c = sc.charAt(i) === " " ? "&nbsp;" : sc.charAt(i);
+      sh += (st.cA && st.cA.area === "sent" && st.cA.pos === i) ? '<mark class="cur">' + c + '</mark>' : c;
+    }
+    $("sent").innerHTML = sh;
+    var th = "";
+    st.raw.forEach(function (x, i) {
+      var c = x.ch === " " ? "&nbsp;" : x.ch.replace("&", "&amp;").replace("<", "&lt;");
+      th += (st.cA && st.cA.area === "typed" && st.cA.pos === i) ? '<mark class="cur">' + c + '</mark>' : c;
+    });
+    $("typed").innerHTML = "친 글자: " + th;
+    $("cursor").textContent = !st.cA ? "" : (st.cA.area === "sent" ? "커서: 예시 문장 " + (st.cA.pos + 1) + "번째 글자" : "커서: 내가 친 글자 " + (st.cA.pos + 1) + "번째");
+    $("scoreline").textContent = "점수: " + st.score + "점 · 문장 콤보: " + st.streak + "번";
+    $("speedline").textContent = "말하기 속도: " + SPEEDS[speedIdx].n + " (= 빠르게, - 느리게)";
+  }
+
+  /* 타이핑 */
+  // quiet: 글자를 미리 소리로 알려 줬으면 다시 말하지 않아요
+  // 한글 단어 하나를 다 쳤을 때 맞았는지: 띄어쓰기를 눌렀을 때(space) 또는 문장을 다 쳤을 때(end)
+  function judgeWord(when) {
+    var chars = st.raw.map(function (x) { return x.ch; });
+    var end = when === "space" ? chars.length - 1 : chars.length;
+    var ls = chars.lastIndexOf(" ", end - 1);
+    var word = chars.slice(ls + 1, end).join("");
+    if (!word) return;
+    var wIdx = chars.slice(0, ls + 1).filter(function (c) { return c === " "; }).length;
+    var target = TGT()[st.si].split(" ")[wIdx] || "";
+    // 맞으면 딩동댕 + 그 단어를 읽어요. 틀리면 땡 + "정답은" + 정답 단어를 읽어요.
+    if (word === target) { ding(); return wordParts(target); }
+    ddaeng();
+    return [ko("정답은")].concat(wordParts(target));
+  }
+  // 한글 단어를 음성으로 읽어요. 끝의 마침표는 "쩜!"으로 읽어요.
+  function wordParts(w) {
+    if (w.charAt(w.length - 1) === ".") return [ko(w.slice(0, -1)), ko("쩜!")];
+    return [ko(w)];
+  }
+  // 커서(좌우 화살표)가 있으면 그 자리 바로 뒤에 글자를 넣어요 (워드프로세서처럼)
+  function insertAtCursor(ch, quiet) {
+    var tgtLen = TGT()[st.si].length;
+    var chars = st.raw.map(function (x) { return x.ch; });
+    if (chars.length >= tgtLen) { say("문장이 다 찼어요. 지우고 다시 쳐 보세요."); return; }
+    var p = st.cA.pos + 1;
+    chars.splice(p, 0, ch);
+    setRaw(chars);
+    st.cA = { area: "typed", pos: p };
+    if (!quiet) keySound(st.raw[p].ok);
+    render();
+    if (!quiet && !koMode) speakSeq([engChar(ch)]);
+  }
+  function typeKey(ch, quiet) {
+    if (st.cA && st.cA.area === "typed" && st.raw.length) { insertAtCursor(ch, quiet); return; }
+    if (complete()) { say("문장을 다 쳤어요. 엔터를 누르세요."); return; }
+    var exp = TGT()[st.si].charAt(st.idx), ok = ch.toLowerCase() === exp.toLowerCase();
+    st.raw.push({ ch: ch, ok: ok });
+    st.idx++;   // 틀려도 다음 칸으로 넘어가요. 틀린 글자는 백스페이스로 지울 수 있어요.
+    if (ok) { st.combo++; st.pitch++; if (has("H4")) st.score += 10; }
+    else { st.wrong = true; st.combo = 0; st.pitch = 0; }
+    if (!quiet) keySound(ok);
+    st.cA = null;
+    render();
+    var wordSpeech = [];
+    if (koMode && ch === " ") wordSpeech = judgeWord("space");
+    if (complete()) {
+      // 다 쳐도 엔터를 눌러야 문장이 끝나요. 여기서는 폭죽으로 축하만 해요.
+      if (koMode) wordSpeech = judgeWord("end");
+      st.doneAt = Date.now();
+      stopClock();
+      celebrate();
+      $("fb").textContent = "문장을 다 쳤어요. 엔터를 누르세요.";
+      speakSeq(wordSpeech.concat([ko("문장을 다 쳤어요. 엔터를 누르세요.")]));
+      return;
+    }
+    if (wordSpeech.length) speakSeq(wordSpeech);
+    else if (!quiet && !koMode) speakSeq([engChar(ch)]);
+  }
+  // 엔터를 눌렀을 때: 맞춘 문장 세기, 콤보, 시간 보너스, 점수를 조각으로 돌려줘요
+  // perfect: 지금 칸에 틀린 글자 없이 다 맞췄는지 (백스페이스로 고친 것은 맞은 것으로 쳐요)
+  function scoreSentence(perfect) {
+    var parts = [];
+    if (perfect) {
+      st.streak++;
+      if (has("H3") && st.streak >= 3) {
+        playCombo();
+        parts.push(ko("콤보!"), ko(st.streak + "번째"), ko("콤보에요!"));
+      }
+    } else if (st.streak > 0) {
+      st.streak = 0;
+      if (has("H3")) parts.push(ko("틀린 글자가 있어서 콤보가 끊겼어요."));
+    }
+    if (has("H5")) {
+      var sec = st.t0 && st.doneAt ? (st.doneAt - st.t0) / 1000 : 999;
+      var bonus = sec <= 10 ? 50 : (sec <= 20 ? 30 : 0);
+      st.score += bonus; st.bonus += bonus;
+      if (bonus) parts.push(ko("시간 보너스"), ko(bonus + "점"));
+      else parts.push(ko("시간 보너스는 없어요."));
+    }
+    if (has("H4") || has("H5")) parts.push(ko("현재"), ko(st.score + "점"), ko("이에요."));
+    return parts;
+  }
+  // 여러 조각으로 말해요. 화면에는 이어서 적어요.
+  function sayParts(msg, before) {
+    $("fb").textContent = msg.map(function (x) { return x.t; }).join(" ");
+    speakSeq((before || []).concat(msg));
+  }
+  function changeSentence(dir, lead) {
+    st.si = (st.si + dir + SENT.length) % SENT.length;
+    st.pitch = 0;
+    st.idx = 0; st.raw = []; st.wrong = false; st.cA = null; st.t0 = 0; st.doneAt = 0;
+    stopClock();
+    $("fb").textContent = "";
+    render();
+    speakSeq((lead || []).concat([ko("다음 문장이에요.")], sentParts(), [clockCb()]));
+  }
+  // 엔터: 다 친 문장은 여기서 끝나요. 아직 다 못 쳤으면 알려 줘요.
+  var ROUND_LEN = 10;   // 한 게임은 문장 10개
+  function isPerfect() { return complete() && st.raw.every(function (x) { return x.ok; }); }
+  function pressEnter() {
+    if (!complete() && st.raw.length === 0) { say("먼저 문장을 쳐 보세요."); return; }
+    // 다 못 쳤어도 엔터를 누르면 그때까지의 점수를 넣고 다음 문장으로 가요
+    var perfect = isPerfect();
+    var lead = scoreSentence(perfect);
+    st.sent++;
+    if (perfect) st.perfect++;
+    render();
+    if (st.sent >= ROUND_LEN) { endGame(lead); return; }
+    changeSentence(1, lead);
+    $("fb").textContent = lead.map(function (x) { return x.t; }).join(" ");
+  }
+  // 백스페이스: 틀린 글자나 잘못 쳐 가 글자를 지워요. 다 쳤어도 고칠 수 있어요.
+  // 칠 글자 목록을 새로 맞춰요: 칸 위치, 맞은 글자, 점수를 목록에 따라 다시 계산해요
+  function setRaw(chars) {
+    var tgt = TGT()[st.si];
+    var oldOk = st.raw.filter(function (x) { return x.ok; }).length;
+    st.raw = chars.map(function (c, i) {
+      return { ch: c, ok: c.toLowerCase() === (tgt.charAt(i) || "\u0000").toLowerCase() };
+    });
+    var newOk = st.raw.filter(function (x) { return x.ok; }).length;
+    st.idx = st.raw.length;
+    st.wrong = st.raw.some(function (x) { return !x.ok; });
+    if (has("H4")) st.score = Math.max(0, st.score + 10 * (newOk - oldOk));
+  }
+  // 백스페이스: 커서(좌우 화살표)가 있으면 그 글자를, 없으면 맨 끝 글자를 지워요
+  function deleteLetter() {
+    if (!st.raw.length) return;
+    var chars = st.raw.map(function (x) { return x.ch; });
+    var p = (st.cA && st.cA.area === "typed") ? st.cA.pos : chars.length - 1;
+    if (p < 0 || p >= chars.length) p = chars.length - 1;
+    var removed = chars[p];
+    chars.splice(p, 1);
+    setRaw(chars);
+    st.cA = chars.length ? { area: "typed", pos: Math.min(p, chars.length - 1) } : null;
+    render();
+    // 지운 글자를 말해 줘요
+    var name = koMode ? ko(NAMES[removed] || removed) : engChar(removed);
+    speakSeq([ko("지웠어요."), name]);
+  }
+  // 9번: 지금 칠 글자(영어 모드) 또는 단어(한글 모드)를 알려 줘요
+  function readNext() {
+    if (complete()) { say("문장을 다 쳤어요. 엔터를 누르세요."); return; }
+    var tgt = TGT()[st.si];
+    if (koMode) {
+      var wIdx = tgt.slice(0, st.idx).split(" ").length - 1;
+      var w = tgt.split(" ")[wIdx] || "";
+      speakSeq([ko("다음은")].concat(wordParts(w)));
+    } else {
+      speakSeq([ko("다음은"), engChar(tgt.charAt(st.idx))]);
+    }
+  }
+  // 10문장이 끝나면 게임이 끝나요
+  // 점수판 (구글 시트, Apps Script 웹앱). 주소는 README 3단계에서 받아 여기에 넣어요.
+  var SCORE_URL = "https://script.google.com/macros/s/AKfycbypN7HZQvRzpJ_uG6IkeiGSfCz03VE_oA0zLO0FPS98CGVLrLhlzE7hRrk_sJr_3NUS4Q/exec";
+  function hasScoreUrl() { return SCORE_URL.indexOf("https://") === 0; }
+  function loadBoard() {
+    return fetch(SCORE_URL).then(function (r) { return r.json(); }).then(function (d) {
+      var top = d.top || [], box = $("board");
+      box.textContent = "";
+      top.forEach(function (t) {
+        var li = document.createElement("li");
+        li.textContent = t.name + " · " + t.score + "점";   // 이름은 글자로만 넣어요
+        box.appendChild(li);
+      });
+      return top;
+    });
+  }
+  function speakBoard() {
+    if (!hasScoreUrl()) { say("점수판 주소가 아직 없어요."); return; }
+    loadBoard().then(function (top) {
+      var parts = [ko(top.length ? "상위 " + top.length + "명을 읽어 드릴게요." : "아직 저장된 점수가 없어요.")];
+      top.forEach(function (t, i) { parts.push(ko((i + 1) + "등"), ko(t.name), ko(t.score + "점")); });
+      speakSeq(parts);
+    }).catch(function () { say("점수판을 불러오지 못했어요."); });
+  }
+  function saveScore() {
+    var name = $("nameIn").value.trim();
+    if (!name) { say("이름을 입력해 주세요."); return; }
+    if (!hasScoreUrl()) { say("점수판 주소가 아직 없어요."); return; }
+    $("btnSave").disabled = true;
+    say("점수를 저장하고 있어요.");
+    fetch(SCORE_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ name: name, score: st.score }) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok) throw new Error("save");
+        say(name + "님, " + st.score + "점을 저장했어요.");
+        speakBoard();
+      })
+      .catch(function () {
+        $("btnSave").disabled = false;
+        say("저장하지 못했어요. 인터넷과 점수판 주소를 확인해 주세요.");
+      });
+  }
+  function endGame(lead) {
+    stopAll(); stopClock();
+    st.over = true;
+    $("app").hidden = true; $("over").hidden = false;
+    $("nameIn").value = ""; $("btnSave").disabled = false; $("board").textContent = "";
+    setTimeout(function () { $("nameIn").focus(); }, 300);
+    $("overText").textContent = "10문장을 다 했어요. 총점 " + st.score + "점이에요. 완벽하게 맞힌 문장은 " + st.perfect + "개예요.";
+    speakSeq((lead || []).concat([ko("10문장을 다 했어요."), ko("총점"), ko(st.score + "점"), ko("이에요."), ko("다시 하려면 엔터, 처음 화면은 8번을 누르세요.")]));
+  }
+
+  /* 시간 (H5): 문장을 들은 뒤부터 재고 똑딱 소리를 내요 */
+  function startClock() {
+    st.t0 = Date.now(); st.clockOn = true;
+    clearInterval(st.tickTimer);
+    st.tickTimer = setInterval(function () {
+      if (!st.clockOn || !has("H5")) return;
+      tone(1000, 0, 0.04, 0.12, "square"); tone(700, 0.5, 0.04, 0.12, "square");
+    }, 1000);
+  }
+  function stopClock() { st.clockOn = false; clearInterval(st.tickTimer); }
+  function clockCb() { return { cb: startClock, t: "", lang: "ko" }; }
+
+  /* 읽기 */
+  function readTyped() {
+    if (!st.raw.length) { say("아직 친 글자가 없어요."); return; }
+    speakSeq([ko("지금까지 친 글자예요.")].concat(st.raw.map(function (x) { return charFor(x.ch); })));
+  }
+  function readScore() {
+    var msg = [ko("지금 점수는"), ko(st.score + "점"), ko("이에요.")];
+    if (st.streak) msg = msg.concat([ko("지금"), ko(st.streak + "번째"), ko("콤보예요.")]);
+    else msg.push(ko("지금은 콤보가 없어요."));
+    sayParts(msg);
+  }
+  // Ctrl + 좌우 화살표: 예시 문장을 한 글자씩 읽어요
+  function moveReadingSentence(dir) {
+    var sc = TGT()[st.si], base = (st.cA && st.cA.area === "sent") ? st.cA.pos : -1;
+    var np = dir > 0 ? Math.min(sc.length - 1, base + 1) : Math.max(0, base - 1);
+    st.cA = { area: "sent", pos: np }; render();
+    speakSeq([charFor(sc.charAt(np))]);
+  }
+  // 좌우 화살표: 내가 친 글자를 커서 따라 읽어요
+  function moveCursorTyped(dir) {
+    var n = st.raw.length;
+    if (!n) { say("아직 친 글자가 없어요."); return; }
+    var base = (st.cA && st.cA.area === "typed") ? st.cA.pos : n;
+    var np = base + dir;
+    if (np < 0) { speakSeq([ko("맨 앞이에요.")]); return; }
+    if (np >= n) { st.cA = null; render(); speakSeq([ko("맨 끝이에요.")]); return; }
+    st.cA = { area: "typed", pos: np }; render();
+    speakSeq([charFor(st.raw[np].ch)]);
+  }
+
+  /* 속도 */
+  // 속도는 말하지 않아요 (문장 읽는 중에 말하면 겹쳐서요). 화면의 "말하기 속도"만 바뀌어요.
+  function changeSpeed(d) {
+    var next = speedIdx + d;
+    if (next < 0 || next >= SPEEDS.length) return;
+    speedIdx = next;
+    render();
+  }
+
+  /* 배경음악 (작은 소리, 기본은 꺼짐) */
+  function musicBar() {
+    if (!musicOn) return;
+    for (var i = 0; i < MEL.length; i++) tone(MEL[i], i * 0.18, 0.16, 0.035, "triangle");
+    for (var j = 0; j < BASS.length; j++) tone(BASS[j] / 2, j * 0.36, 0.3, 0.03, "square");
+    musicTimer = setTimeout(musicBar, MEL.length * 180);
+  }
+  // 배경음악이 켜져 있는데 돌고 있지 않으면 다시 틀어요 (브라우저는 첫 누름 뒤에만 소리를 내요)
+  function ensureMusic() { if (musicOn && !musicTimer) { ctx(); musicBar(); } }
+  function toggleMusic() {
+    musicOn = !musicOn;
+    if (musicOn) { ctx(); musicBar(); } else { clearTimeout(musicTimer); musicTimer = null; }
+    $("btnMusic").textContent = "배경음악: " + (musicOn ? "켜짐" : "꺼짐") + " (6)";
+  }
+
+  /* 단축키 안내: [화면 이름, 소리 이름, 설명] */
+  var KEYITEMS = [
+    ["1", "일", "문장 다시 듣기"],
+    ["2", "이", "현재 점수 듣기"],
+    ["3", "삼", "소리 멈추기"],
+    ["4", "사", "지금까지 쓴 글자 읽기"],
+    ["6", "육", "배경음악 켜기와 끄기"],
+    ["7", "칠", "단축키 안내를 다시 듣기"],
+    ["9", "구", "지금 칠 글자 알려 주기"],
+    ["-", "빼기", "말하기 느리게"],
+    ["=", "같다", "말하기 빠르게"],
+    ["백스페이스", "백스페이스", "글자 지우기"],
+    ["엔터", "엔터", "다음 문장으로 가기"],
+    ["왼쪽과 오른쪽 화살표", "왼쪽과 오른쪽 화살표", "내가 친 글자를 커서 따라 읽기"],
+    ["컨트롤과 왼쪽 오른쪽 화살표", "컨트롤과 왼쪽 오른쪽 화살표", "예시 문장을 한 글자씩 읽기"]
+  ];
+  // 단축키 안내 문장 (미리 음성 파일로 만들어 둔 문장이에요)
+  var HELP_LINES = [
+    "일, 문장 다시 듣기입니다.",
+    "이, 현재 점수 듣기입니다.",
+    "삼, 소리 멈추기입니다.",
+    "사, 지금까지 쓴 글자 읽기입니다.",
+    "육, 배경음악 켜기와 끄기입니다.",
+    "칠, 단축키 안내를 다시 듣기입니다.",
+    "구, 지금 칠 글자 알려 주기입니다.",
+    "빼기, 말하기 느리게입니다.",
+    "같다, 말하기 빠르게입니다.",
+    "백스페이스, 글자 지우기입니다.",
+    "엔터, 다음 문장으로 가기입니다.",
+    "왼쪽과 오른쪽 화살표, 내가 친 글자를 커서 따라 읽기입니다.",
+    "컨트롤과 왼쪽 오른쪽 화살표, 예시 문장을 한 글자씩 읽기입니다."
+  ];
+  function readHelp() {
+    var parts = [ko("단축키 안내예요.")];
+    HELP_LINES.forEach(function (line) { parts.push(ko(line)); });
+    $("fb").textContent = "단축키: " + KEYITEMS.map(function (k) { return k[0] + " " + k[2]; }).join(" · ");
+    speakSeq(parts);
+  }
+
+  /* 게임 시작 */
+  // 영어 문장과 한글 문장을 같은 순서로 섞어요
+  function shuffleSent() {
+    var order = SENT.map(function (x, i) { return i; });
+    for (var i = order.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)), t = order[i];
+      order[i] = order[j]; order[j] = t;
+    }
+    var en = order.map(function (k) { return SENT[k]; }), kr = order.map(function (k) { return KSENT[k]; });
+    for (var n = 0; n < order.length; n++) { SENT[n] = en[n]; KSENT[n] = kr[n]; }
+  }
+  // 한글 입력 모드를 켜고 끄면서 게임을 시작해요 ("ko" 면 한글로 치기)
+  function startGame(mode) {
+    ctx();
+    koMode = mode === "ko";
+    shuffleSent();
+    st.si = 0; st.idx = 0; st.raw = []; st.cA = null; st.wrong = false;
+    st.combo = 0; st.streak = 0; st.pitch = 0; st.score = 0; st.bonus = 0; st.t0 = 0;
+    st.sent = 0; st.perfect = 0; st.over = false; $("over").hidden = true;
+    stopClock();
+    $("start").hidden = true; $("app").hidden = false;
+    render();
+    $("fb").textContent = "";
+    speakSeq([ko("단축키를 들으려면 칠 번 키를 누르세요."), ko("문장을 들려 드릴게요.")].concat(sentParts(), [clockCb()]));
+    if (koMode) $("hangulInput").focus();
+  }
+
+  /* 키 입력 */
+  /* 시작 화면: 화살표로 고르고 엔터로 시작해요 */
+  var startChoice = 0;
+  function paintStart() {
+    $("btnStart").classList.toggle("primary", startChoice === 0);
+    $("btnKorean").classList.toggle("primary", startChoice === 1);
+  }
+  function pickStart(d) {
+    startChoice = (startChoice + d + 2) % 2;
+    paintStart();
+    say(startChoice === 0 ? "영어 타자 연습" : "한글 타자 연습");
+  }
+  // 처음 화면으로 돌아가요 (8)
+  function goHome() {
+    stopAll(); stopClock();
+    koMode = false;
+    $("hangulInput").blur();
+    $("app").hidden = true; $("over").hidden = true; st.over = false;
+    $("start").hidden = false;
+    startChoice = 0; paintStart();
+    speakSeq([ko("영어 타자 연습과 한글 타자 연습 중에서 골라 주세요.")]);
+  }
+  function confirmStart() {
+    if (startChoice === 0) startGame();
+    else startGame("ko");
+  }
+  // 처음 화면 안내: 브라우저는 사용자가 한 번 누른 뒤에야 소리를 내게 해 줘요
+  var introSaid = false;
+  function intro() {
+    if (!$("start") || $("start").hidden) return;
+    ensureMusic();
+    if (introSaid) return;
+    introSaid = true;
+    speakSeq([ko("엔터를 누르면 시작합니다.")]);
+  }
+  window.addEventListener("keydown", intro, true);
+  window.addEventListener("click", intro, true);
+  setTimeout(intro, 600);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.isComposing) return;   // 한글 조합 중에는 키를 가로채지 않아요
+    if (st.over) {               // 게임이 끝난 화면: 이름 칸에 쓰는 중이면 그대로 두고, 엔터는 다시 하기, 8은 처음 화면
+      if (e.target && e.target.tagName === "INPUT") return;
+      if (e.key === "Enter") { e.preventDefault(); startGame(koMode ? "ko" : "en"); return; }
+      if (e.key === "8") { e.preventDefault(); goHome(); return; }
+      return;
+    }
+    if (!$("start").hidden) {
+      if (e.key === "ArrowLeft") { e.preventDefault(); pickStart(-1); return; }
+      if (e.key === "ArrowRight") { e.preventDefault(); pickStart(1); return; }
+      if (e.key === "Enter") { e.preventDefault(); confirmStart(); return; }
+      if (e.key === "6") { e.preventDefault(); toggleMusic(); return; }
+      if (e.key === "7") { e.preventDefault(); readHelp(); return; }
+      if (["Shift", "Control", "Alt", "Meta", "Tab"].indexOf(e.key) >= 0) return;
+      // 화살표와 엔터 말고 다른 키를 누르면 사용법을 말해 줘요
+      e.preventDefault();
+      speakSeq([ko("왼쪽과 오른쪽 화살표로 영어 타자 연습과 한글 타자 연습 중에서 고르세요. 엔터를 누르면 시작해요. 육 번은 배경음악 켜기와 끄기, 칠 번은 단축키 안내예요.")]);
+      return;
+    }
+    if ($("app").hidden) return;
+    if (e.ctrlKey && (e.key === "ArrowRight" || e.key === "ArrowLeft")) { e.preventDefault(); moveReadingSentence(e.key === "ArrowRight" ? 1 : -1); return; }
+    if (!e.ctrlKey && !e.altKey && !e.metaKey && (e.key === "ArrowRight" || e.key === "ArrowLeft")) { e.preventDefault(); moveCursorTyped(e.key === "ArrowRight" ? 1 : -1); return; }
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    if (e.key === "1") { e.preventDefault(); readSentence(); return; }
+    if (e.key === "2") { e.preventDefault(); readScore(); return; }
+    if (e.key === "3") { e.preventDefault(); stopAll(); return; }
+    if (e.key === "4") { e.preventDefault(); readTyped(); return; }
+    if (e.key === "6") { e.preventDefault(); toggleMusic(); return; }
+    if (e.key === "7") { e.preventDefault(); readHelp(); return; }
+    if (e.key === "=") { e.preventDefault(); changeSpeed(1); return; }
+    if (e.key === "-") { e.preventDefault(); changeSpeed(-1); return; }
+    if (e.key === "8") { e.preventDefault(); goHome(); return; }
+    if (e.key === "9") { e.preventDefault(); readNext(); return; }
+    if (e.key === "5" || e.key === "0") { e.preventDefault(); return; }
+    if (e.target && e.target.tagName === "BUTTON" && e.key === "Enter") return;
+    if (e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); deleteLetter(); return; }
+    if (e.key === "Enter") { e.preventDefault(); pressEnter(); return; }
+    if (e.key.length === 1) {
+      // 한글 모드에서는 숨겨진 입력칸이 글자를 받아요
+      if (koMode) { if (document.activeElement !== $("hangulInput")) $("hangulInput").focus(); return; }
+      e.preventDefault(); typeKey(e.key);
+    }
+  });
+
+  // 한글 입력: 숨겨진 입력칸의 글자를 한 글자씩 처리해요
+  // 조합 중인 글자를 미리 알려 줘요: 맞으면 딩 + 글자 이름, 틀리면 땡
+  var lastPreview = "";
+  function previewHangul(c) {
+    // 완성된 한글 한 글자(가~힣)만 미리 알려요. ㄴ, ㅏ 같은 낱자는 아직 글자가 아니에요.
+    if (!koMode || complete() || !/^[가-힣]$/.test(c || "") || c === lastPreview) return;
+    lastPreview = c;
+    var exp = TGT()[st.si].charAt(st.idx);
+    if (c === exp) {
+      if (has("H1")) bell(400 * Math.pow(1.05, Math.min(st.pitch + 1, 20)));
+      speakSeq([charParts(c)]);
+    } else if (has("H2")) {
+      ddaeng();
+    }
+  }
+  function flushHangul() {
+    var el = $("hangulInput"), t = el.value;
+    if (!t) return;
+    el.value = "";
+    if (!koMode) return;
+    Array.from(t).forEach(function (c) {
+      typeKey(c, c === lastPreview);   // 미리 알려 준 글자는 다시 말하지 않아요
+    });
+    lastPreview = "";
+  }
+  $("hangulInput").addEventListener("input", function (e) { if (!e.isComposing) flushHangul(); });
+  $("hangulInput").addEventListener("compositionend", flushHangul);
+
+  /* 버튼 */
+  $("btnStart").addEventListener("click", function () { startChoice = 0; paintStart(); startGame(); });
+  $("btnKorean").addEventListener("click", function () { startChoice = 1; paintStart(); confirmStart(); });
+  $("btnAgain").addEventListener("click", function () { ctx(); readSentence(); });
+  $("btnScore").addEventListener("click", function () { ctx(); readScore(); });
+  $("btnStop").addEventListener("click", function () { stopAll(); });
+  $("btnTyped").addEventListener("click", function () { ctx(); readTyped(); });
+  $("btnMusic").addEventListener("click", function () { ctx(); toggleMusic(); });
+  $("btnKeys").addEventListener("click", function () { ctx(); readHelp(); });
+  $("btnHome").addEventListener("click", function () { ctx(); goHome(); });
+  $("btnNext").addEventListener("click", function () { ctx(); readNext(); });
+  $("btnCurL").addEventListener("click", function () { ctx(); moveCursorTyped(-1); });
+  $("btnCurR").addEventListener("click", function () { ctx(); moveCursorTyped(1); });
+  $("btnSentL").addEventListener("click", function () { ctx(); moveReadingSentence(-1); });
+  $("btnSentR").addEventListener("click", function () { ctx(); moveReadingSentence(1); });
+  $("btnAgainGame").addEventListener("click", function () { ctx(); startGame(koMode ? "ko" : "en"); });
+  $("btnHomeOver").addEventListener("click", function () { ctx(); goHome(); });
+  $("btnSlower").addEventListener("click", function () { ctx(); changeSpeed(-1); });
+  $("btnFaster").addEventListener("click", function () { ctx(); changeSpeed(1); });
+  document.querySelectorAll(".btn").forEach(function (b) { b.addEventListener("click", function () { b.blur(); }); });
+  paintStart();
+})();
+</script>
+</body>
+</html>
