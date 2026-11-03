@@ -320,7 +320,8 @@
       if (my !== tok || i >= parts.length) return;
       var p = parts[i];
       if (p.cb) { p.cb(); next(i + 1); return; }
-      var rate = speedRate() * (p.r || 1);
+      // 영어 문장은 말하기 속도와 따로 항상 천천히 읽어요 (안내 말만 속도 조절을 따라요)
+      var rate = (p.sent ? 0.9 : speedRate()) * (p.r || 1);
       var src = fileFor(p);
       if (src) {
         // 파일을 못 읽으면 기계 음성으로 이어서 읽어요
