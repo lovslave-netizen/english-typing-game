@@ -26,13 +26,6 @@ function doGet() {
   return json_({ ok: true, top: top });
 }
 
-// 점수판 전체 지우기: Apps Script 편집기에서 이 함수를 골라 ▶실행 하면 점수만 지워지고 제목 줄은 남아요.
-function resetScores() {
-  var sheet = getSheet_();
-  var last = sheet.getLastRow();
-  if (last > 1) sheet.deleteRows(2, last - 1);
-}
-
 // 게임 페이지가 점수를 저장할 때: { name, score }
 function doPost(e) {
   var data;
