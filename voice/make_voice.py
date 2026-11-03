@@ -67,7 +67,9 @@ def collect(html):
                     words.append(w)
                     if w.endswith("."):
                         words.append(w[:-1])
-    ko_all = sorted(set(ko_lits + numbers + extra + words + ["정답은"]))
+    # 점수판 상위 50명을 읽을 때 쓰는 문장과 등수
+    board = ["상위 %d명을 읽어 드릴게요." % n for n in range(1, 51)] + ["%d등" % n for n in range(1, 51)]
+    ko_all = sorted(set(ko_lits + numbers + extra + words + board + ["정답은"]))
     # 마침표로 끝나는 문장은 마침표 앞까지도 따로 만들어요 (끝에 "쩜!"을 붙여 읽으려고)
     en_all = sorted(set(sents + en_names + [s[:-1] for s in sents if s.endswith(".")]))
     ko_all = sorted(set(ko_all + [s[:-1] for s in ko_all if s.endswith(".")]))
