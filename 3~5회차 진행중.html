@@ -143,7 +143,7 @@
     H3: { q: "계속해서 맞췄을 때 조금 더 신나게 게임을 지속해서 할 수 있는 방법이 없을까요? 콤보기능을 넣고 싶어요. 어떻게 명령해야 할까요?", cmd: "문장을 틀린 글자 없이 맞춰서 엔터를 누르면 1문장 성공이야. 3문장을 연속으로 성공하면 콤보 소리를 내고 '콤보!'라고 말해 줘. 그 뒤에도 성공할 때마다 계속 콤보를 울려 줘. 틀린 글자가 있는 채로 엔터를 누르면 콤보를 끊어 줘.", now: "문장을 틀리지 않고 3개 연속 맞추면 콤보 소리가 나요.", short: "3문장 연속 성공하면 콤보", pos: 3 },
     H4: { q: "지금은 점수 체계가 없어서 무한정 타자만 치니 재미가 없어요. 점수제가 있으면 좋겠어요. 어떤 명령을 하면 점수 기능을 넣을 수 있을까요?", cmd: "글자 하나를 맞힐 때마다 점수를 10점씩 주고, 점수를 쌓아 줘.", now: "글자 하나를 맞힐 때마다 10점씩 점수가 쌓여요.", short: "글자 하나마다 10점", pos: 4 },
     H5: { q: "일률적인 점수만 올라가면 재미가 없을 것 같아요. 시간 보너스를 넣으면 좋을 것 같아요. 어떤 명령을 하면 좋을까요?", cmd: "문장을 들려준 뒤부터 시간을 재고, 10초 안에 끝내면 50점, 20초 안에 끝내면 30점을 더해 줘. 시간이 가는 동안 똑딱똑딱 소리를 내 줘. 문장을 끝낼 때마다 현재 점수를 말해 줘.", now: "시간 보너스가 생기고, 똑딱 소리와 현재 점수가 나와요.", short: "시간 보너스와 똑딱 소리", pos: 1 },
-    H6: { q: "문장을 많이 쳐도 조금 심심해요. 중간에 보너스 퀴즈를 넣어서 더 재미있게 하고 싶어요. 어떤 명령을 하면 될까요?", cmd: "2~3문장마다 랜덤으로 영어 단어 퀴즈를 내 줘. 보기는 4개야. 맞히면 200점, 틀리면 100점을 줘.", now: "2~3문장마다 영어 퀴즈가 나오고, 맞히면 200점이에요.", short: "2~3문장마다 영어 보너스 퀴즈", pos: 2 }
+    H6: { q: "문장을 많이 쳐도 조금 심심해요. 중간에 보너스 퀴즈를 넣어서 더 재미있게 하고 싶어요. 어떤 명령을 하면 될까요?", cmd: "5문장마다 영어 단어 퀴즈를 내 줘. 보기는 4개야. 맞히면 200점, 틀리면 100점을 줘.", now: "5문장마다 영어 퀴즈가 나오고, 맞히면 200점이에요.", short: "5문장마다 영어 보너스 퀴즈", pos: 2 }
   });
   var POOL = POOL5;
   var BASE = POOL3.length + POOL4.length;   // 5회는 4회까지 고친 상태에서 시작해요
@@ -357,6 +357,8 @@
   function stopAll() { tok++; stopAudio(); try { if (synth) synth.cancel(); } catch (e) {} clearTimeout(st.auto); }
   function ko(t) { return { t: t, lang: "ko" }; }
   function en(t) { return { t: t, lang: "en" }; }
+  // 퀴즈의 영어 단어는 말하기 속도와 상관없이 천천히 읽어요
+  function enWord(t) { return { t: t, lang: "en", sent: true, slow: true }; }
   function enSent(t) { return { t: t, lang: "en", sent: true }; }
   var LET = { A: "에이", B: "비", C: "씨", D: "디", E: "이", F: "에프", G: "지", H: "에이치", I: "아이", J: "제이", K: "케이", L: "엘", M: "엠", N: "엔", O: "오", P: "피", Q: "큐", R: "알", S: "에스", T: "티", U: "유", V: "브이", W: "더블유", X: "엑스", Y: "와이", Z: "제트" };
   // 글자 하나는 알파벳 이름으로 읽어요. 예시문장 단어 안의 a는 "어"로 읽혀요.
@@ -507,13 +509,13 @@
   }
 
   /* 5회 H3: 틀린 글자 없이 한 문장을 맞춰 엔터를 누르면 1문장 성공. 3문장 연속부터 콤보! */
-  /* 보너스 퀴즈: 2~3문장마다 랜덤으로 영어 단어 퀴즈. 맞히면 200점, 틀리면 100점 (H6 질문에 답한 게임에서만 나와요) */
+  /* 보너스 퀴즈: 5문장마다 영어 단어 퀴즈. 맞히면 200점, 틀리면 100점 (H6 질문에 답한 게임에서만 나와요) */
   var QUIZ = [
     { ko: "고양이", en: "cat" }, { ko: "개", en: "dog" }, { ko: "사과", en: "apple" }, { ko: "책", en: "book" },
     { ko: "공", en: "ball" }, { ko: "태양", en: "sun" }, { ko: "물", en: "water" }, { ko: "학교", en: "school" },
     { ko: "집", en: "house" }, { ko: "나무", en: "tree" }, { ko: "빨간색", en: "red" }, { ko: "파란색", en: "blue" }
   ];
-  var quizState = null, quizCount = 0, quizEvery = 2 + Math.floor(Math.random() * 2);
+  var quizState = null, quizCount = 0, quizEvery = 5;
   function shuffleArr(a) {
     return a.map(function (x) { return [Math.random(), x]; }).sort(function (p, q) { return p[0] - q[0]; }).map(function (p) { return p[1]; });
   }
@@ -522,7 +524,7 @@
     var others = shuffleArr(QUIZ.filter(function (x) { return x !== q; })).slice(0, 3);
     var opts = shuffleArr([q].concat(others));
     quizState = { q: q, opts: opts, ans: opts.indexOf(q) };
-    quizCount = 0; quizEvery = 2 + Math.floor(Math.random() * 2);
+    quizCount = 0; quizEvery = 5;
     $("quizQ").textContent = "보너스 퀴즈! 이 말을 영어로 하면 무엇일까요? " + q.ko;
     var box = $("quizOpts"); box.textContent = "";
     opts.forEach(function (o, i) {
@@ -534,7 +536,7 @@
     });
     $("quiz").hidden = false;
     var parts = (lead || []).concat([ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)]);
-    opts.forEach(function (o, i) { parts.push(ko(OPT_NAMES[i]), en(o.en)); });
+    opts.forEach(function (o, i) { parts.push(ko(OPT_NAMES[i]), enWord(o.en)); });
     $("fb").textContent = "";
     speakSeq(parts);
   }
@@ -544,7 +546,7 @@
     quizState = null;
     $("quiz").hidden = true;
     st.score += right ? 200 : 100;
-    var res = right ? [ko("정답이에요!"), ko("200점")] : [ko("아쉬워요."), ko("정답은"), en(answer.en), ko("100점")];
+    var res = right ? [ko("정답이에요!"), ko("200점")] : [ko("아쉬워요."), ko("정답은"), enWord(answer.en), ko("100점")];
     render();
     changeSentence(1, res);
   }
@@ -567,7 +569,7 @@
     if (!has("G")) return;
     if (msg) lead.push(ko(msg));
     quizCount++;
-    if (has("H6") && quizCount >= quizEvery) { startQuiz(lead); return; }   // 2~3문장마다 보너스 퀴즈
+    if (has("H6") && quizCount >= quizEvery) { startQuiz(lead); return; }   // 5문장마다 보너스 퀴즈
     changeSentence(1, lead);
     if (msg) $("fb").textContent = msg;
   }
@@ -778,6 +780,9 @@
     if ($("app").hidden) return;
     if (quizState) {             // 보너스 퀴즈 중에는 1~4 번 키로 고르고, 다른 키는 무시해요
       if (/^[1-4]$/.test(e.key)) { e.preventDefault(); answerQuiz(+e.key - 1); }
+      if (e.key === "=") { e.preventDefault(); changeSpeed(1); return; }   // 퀴즈 중에도 속도는 바꿀 수 있어요
+      if (e.key === "-") { e.preventDefault(); changeSpeed(-1); return; }
+      if (e.key === "3") { e.preventDefault(); stopAll(); return; }
       return;
     }
     // 고칠 것 메뉴가 열려 있으면 1~4는 보기 선택, 5는 메뉴 닫기
