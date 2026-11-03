@@ -279,7 +279,12 @@
     return { t: NAMES[ch] || LET[u] || u, lang: "ko", r: 1.25 };
   }
   function readSentence() { speakSeq(sentParts()); }
-  function say(t) { $("fb").textContent = t; speakSeq([ko(t)]); }
+  // 안내 문장: 게임 중이면 아래 칸에, 게임이 끝난 화면이면 점수 칸에도 보여 줘요
+  function say(t) {
+    $("fb").textContent = t;
+    if (st.over) $("overText").textContent = t;
+    speakSeq([ko(t)]);
+  }
 
   /* 화면 */
   function render() {
@@ -767,6 +772,11 @@
   $("btnSentR").addEventListener("click", function () { ctx(); moveReadingSentence(1); });
   $("btnAgainGame").addEventListener("click", function () { ctx(); startGame(koMode ? "ko" : "en"); });
   $("btnHomeOver").addEventListener("click", function () { ctx(); goHome(); });
+  $("btnSave").addEventListener("click", function () { ctx(); saveScore(); });
+  $("btnBoard").addEventListener("click", function () { ctx(); speakBoard(); });
+  $("nameIn").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); ctx(); saveScore(); }
+  });
   $("btnSlower").addEventListener("click", function () { ctx(); changeSpeed(-1); });
   $("btnFaster").addEventListener("click", function () { ctx(); changeSpeed(1); });
   document.querySelectorAll(".btn").forEach(function (b) { b.addEventListener("click", function () { b.blur(); }); });
