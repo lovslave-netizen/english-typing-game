@@ -62,6 +62,11 @@
       <p class="meta" id="scoreline" aria-live="polite"></p>
       <div class="fb" id="fb" role="status" aria-live="polite"></div>
 
+      <section id="quiz" aria-label="보너스 퀴즈" hidden style="border:4px solid currentColor;border-radius:14px;padding:12px 16px;margin:12px 0">
+        <p id="quizQ" role="status" aria-live="polite" style="font-size:26px;font-weight:700"></p>
+        <div id="quizOpts"></div>
+      </section>
+
       <section class="menu" id="menu" hidden aria-label="고칠 것 고르기">
         <h2 id="q"></h2>
         <div id="opts"></div>
@@ -501,6 +506,49 @@
   }
 
   /* 5회 H3: 틀린 글자 없이 한 문장을 맞춰 엔터를 누르면 1문장 성공. 3문장 연속부터 콤보! */
+  /* 보너스 퀴즈: 2~3문장마다 랜덤으로 영어 단어 퀴즈. 맞히면 200점, 틀리면 100점 (H6 질문에 답한 게임에서만 나와요) */
+  var QUIZ = [
+    { ko: "고양이", en: "cat" }, { ko: "개", en: "dog" }, { ko: "사과", en: "apple" }, { ko: "책", en: "book" },
+    { ko: "공", en: "ball" }, { ko: "태양", en: "sun" }, { ko: "물", en: "water" }, { ko: "학교", en: "school" },
+    { ko: "집", en: "house" }, { ko: "나무", en: "tree" }, { ko: "빨간색", en: "red" }, { ko: "파란색", en: "blue" }
+  ];
+  var quizState = null, quizCount = 0, quizEvery = 2 + Math.floor(Math.random() * 2);
+  function shuffleArr(a) {
+    return a.map(function (x) { return [Math.random(), x]; }).sort(function (p, q) { return p[0] - q[0]; }).map(function (p) { return p[1]; });
+  }
+  function startQuiz(lead) {
+    var q = QUIZ[Math.floor(Math.random() * QUIZ.length)];
+    var others = shuffleArr(QUIZ.filter(function (x) { return x !== q; })).slice(0, 3);
+    var opts = shuffleArr([q].concat(others));
+    quizState = { q: q, opts: opts, ans: opts.indexOf(q) };
+    quizCount = 0; quizEvery = 2 + Math.floor(Math.random() * 2);
+    $("quizQ").textContent = "보너스 퀴즈! 이 말을 영어로 하면 무엇일까요? " + q.ko;
+    var box = $("quizOpts"); box.textContent = "";
+    opts.forEach(function (o, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "btn";
+      b.textContent = (i + 1) + "번. " + o.en;
+      b.addEventListener("click", function () { ctx(); answerQuiz(i); });
+      box.appendChild(b);
+    });
+    $("quiz").hidden = false;
+    var parts = (lead || []).concat([ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)]);
+    opts.forEach(function (o, i) { parts.push(ko(OPT_NAMES[i]), en(o.en)); });
+    $("fb").textContent = "";
+    speakSeq(parts);
+  }
+  function answerQuiz(i) {
+    if (!quizState) return;
+    var right = i === quizState.ans, answer = quizState.opts[quizState.ans];
+    quizState = null;
+    $("quiz").hidden = true;
+    st.score += right ? 200 : 100;
+    var res = right ? [ko("정답이에요!"), ko("200점")] : [ko("아쉬워요."), ko("정답은"), en(answer.en), ko("100점")];
+    render();
+    changeSentence(1, res);
+  }
+  function closeQuiz() { quizState = null; quizCount = 0; $("quiz").hidden = true; }
+
   function pressEnter() {
     var lead = [], msg = "";
     if (complete() && !st.wrong) {
@@ -517,6 +565,8 @@
     }
     if (!has("G")) return;
     if (msg) lead.push(ko(msg));
+    quizCount++;
+    if (has("H6") && quizCount >= quizEvery) { startQuiz(lead); return; }   // 2~3문장마다 보너스 퀴즈
     changeSentence(1, lead);
     if (msg) $("fb").textContent = msg;
   }
@@ -723,6 +773,10 @@
   /* 키 입력 */
   document.addEventListener("keydown", function (e) {
     if ($("app").hidden) return;
+    if (quizState) {             // 보너스 퀴즈 중에는 1~4 번 키로 고르고, 다른 키는 무시해요
+      if (/^[1-4]$/.test(e.key)) { e.preventDefault(); answerQuiz(+e.key - 1); }
+      return;
+    }
     // 고칠 것 메뉴가 열려 있으면 1~4는 보기 선택, 5는 메뉴 닫기
     if (st.menu) {
       if (/^[1-4]$/.test(e.key)) { e.preventDefault(); pick(+e.key - 1); return; }
