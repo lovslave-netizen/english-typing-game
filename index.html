@@ -24,6 +24,8 @@
 </head>
 <body>
 <div class="wrap">
+  <p class="meta" style="margin:8px 0 0;font-size:20px">한국시각장애인복지관</p>
+  <p class="meta" style="margin:0 0 8px;font-size:20px">점자문해교실 영어자판·컴퓨터 타자게임</p>
   <h1>영어 타자 게임</h1>
 
   <section id="start" aria-label="시작">
@@ -387,7 +389,7 @@
       st.streak++;
       if (has("H3") && st.streak >= 3) {
         playCombo();
-        parts.push(ko("콤보!"), ko(st.streak + "번째"), ko("콤보에요!"));
+        parts.push(ko("콤보! " + st.streak + "번째 콤보에요!"));
       }
     } else if (st.streak > 0) {
       st.streak = 0;

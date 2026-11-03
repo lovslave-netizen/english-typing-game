@@ -76,6 +76,8 @@ def collect(html):
     menu = [n + "이 맞았어요." for n in menu_names] + [n + "은 틀렸어요." for n in menu_names]
     menu += [k + " 버전을 열었어요." for k in knum] + [k + " 버전으로 돌아왔어요." for k in knum]
     ko_all = sorted(set(ko_all + menu))
+    combo = ["콤보! %d번째 콤보에요!" % n for n in range(1, 101)]
+    ko_all = sorted(set(ko_all + combo))
     # 마침표로 끝나는 문장은 마침표 앞까지도 따로 만들어요 (끝에 "쩜!"을 붙여 읽으려고)
     # 아이템 퀴즈의 영어 단어 (QUIZ 목록의 en: "...")
     quiz_en = re.findall(r'\ben: "([^"]+)"', script)
