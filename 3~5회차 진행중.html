@@ -43,7 +43,7 @@
 
 
   <section id="hub" aria-label="회차 고르기">
-    <p>소리가 나는 컴퓨터에서 회차를 골라 주세요. 바로 시작해요.</p>
+    <p>소리가 나는 컴퓨터에서 회차를 골라 주세요. 바로 시작해요. 보너스 퀴즈 답은 A, S, D, F 키예요.</p>
     <button type="button" class="btn" id="hub3">3회 · 영타 게임 고치기</button>
     <button type="button" class="btn" id="hub4">4회 · 조건 (if) · 영타 게임 고치기</button>
     <button type="button" class="btn primary" id="hub5">5회 · 게임 느낌 (if-else)</button>
@@ -560,18 +560,19 @@
     var opts = shuffleArr([q].concat(others));
     quizState = { q: q, opts: opts, ans: opts.indexOf(q) };
     quizCount = 0; quizEvery = 5;
-    $("quizQ").textContent = "보너스 퀴즈! 이 말을 영어로 하면 무엇일까요? " + q.ko;
+    $("quizQ").textContent = "보너스 퀴즈! 이 말을 영어로 하면 무엇일까요? " + q.ko + "  (A, S, D, F 로 고르세요)";
     var box = $("quizOpts"); box.textContent = "";
     opts.forEach(function (o, i) {
       var b = document.createElement("button");
       b.type = "button"; b.className = "btn";
-      b.textContent = (i + 1) + "번. " + o.en;
+      b.textContent = "ASDF"[i] + ". " + o.en;
       b.addEventListener("click", function () { ctx(); answerQuiz(i); });
       box.appendChild(b);
     });
     $("quiz").hidden = false;
     var parts = (lead || []).concat([ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)]);
-    opts.forEach(function (o, i) { parts.push(ko(OPT_NAMES[i]), enWord(o.en)); });
+    parts.push(ko("에이, 에스, 디, 에프 중에서 고르세요."));
+    opts.forEach(function (o, i) { parts.push(ko(["에이", "에스", "디", "에프"][i]), enWord(o.en)); });
     $("fb").textContent = "";
     speakSeq(parts);
   }
@@ -741,6 +742,7 @@
     "구, 지금 칠 글자 알려 주기입니다.",
     "빼기, 말하기 느리게입니다.",
     "같다, 말하기 빠르게입니다.",
+    "에이, 에스, 디, 에프, 보너스 퀴즈 답을 고르기입니다.",
     "백스페이스, 글자 지우기입니다.",
     "엔터, 다음 문장으로 가기입니다.",
     "왼쪽과 오른쪽 화살표, 내가 친 글자를 커서 따라 읽기입니다.",
@@ -824,11 +826,12 @@
     }
     if ($("app").hidden) return;
     if (quizState) {             // 보너스 퀴즈 중에는 1~4 번 키로 고르고, 다른 키는 무시해요
-      if (/^[1-4]$/.test(e.key)) { e.preventDefault(); answerQuiz(+e.key - 1); }
+      var qi = { a: 0, s: 1, d: 2, f: 3 }[e.key.toLowerCase()];
+      if (qi !== undefined) { e.preventDefault(); answerQuiz(qi); return; }
       if (e.key === "=") { e.preventDefault(); changeSpeed(1); return; }   // 퀴즈 중에도 속도는 바꿀 수 있어요
       if (e.key === "-") { e.preventDefault(); changeSpeed(-1); return; }
       if (e.key === "3") { e.preventDefault(); stopAll(); return; }
-      return;
+      if (!/^[0-9=\-]$/.test(e.key)) return;
     }
     // 고칠 것 메뉴가 열려 있으면 1~4는 보기 선택, 5는 메뉴 닫기
     if (st.menu) {

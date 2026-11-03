@@ -1,4 +1,5 @@
 window.VOICE_MAP = {
+ "  (A, S, D, F 로 고르세요)": "voice/ko/54fdc25442db.mp3",
  " (= 빠르게, - 느리게)": "voice/ko/8f8513665278.mp3",
  " · 말하기 속도: ": "voice/ko/15301b036832.mp3",
  " 느낌표 ": "voice/ko/9252df5f1a83.mp3",
@@ -979,6 +980,10 @@ window.VOICE_MAP = {
  "엄청빠르게": "voice/ko/69b2f7c493ee.mp3",
  "에스": "voice/ko/19117f25ac92.mp3",
  "에이": "voice/ko/a25aaab23ab6.mp3",
+ "에이, 에스, 디, 에프 중에서 고르세요": "voice/ko/c5b7741e9b24.mp3",
+ "에이, 에스, 디, 에프 중에서 고르세요.": "voice/ko/b083509ab78f.mp3",
+ "에이, 에스, 디, 에프, 보너스 퀴즈 답을 고르기입니다": "voice/ko/a2080f7d503b.mp3",
+ "에이, 에스, 디, 에프, 보너스 퀴즈 답을 고르기입니다.": "voice/ko/1ee45f47e142.mp3",
  "에이치": "voice/ko/be57cdcc5cfd.mp3",
  "에프": "voice/ko/e9ba518be8de.mp3",
  "엑스": "voice/ko/90fe7e24d74a.mp3",
