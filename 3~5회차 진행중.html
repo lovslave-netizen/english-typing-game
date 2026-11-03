@@ -895,7 +895,7 @@
     if (!hasScoreUrl()) { say("점수판 주소가 아직 없어요."); return; }
     loadBoard().then(function (top) {
       var parts = [ko(top.length ? "상위 " + top.length + "명을 읽어 드릴게요." : "아직 저장된 점수가 없어요.")];
-      top.forEach(function (t, i) { parts.push(ko((i + 1) + "등"), ko(t.name), ko(t.score + "점")); });
+      top.forEach(function (t, i) { parts.push(ko(t.name + "님"), ko(t.score + "점")); });
       speakSeq(parts);
     }).catch(function () { say("점수판을 불러오지 못했어요."); });
   }
