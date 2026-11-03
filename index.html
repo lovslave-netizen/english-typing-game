@@ -69,6 +69,8 @@
     <input id="nameIn" maxlength="10" autocomplete="off" style="font:inherit;font-size:24px;min-height:56px;width:100%;box-sizing:border-box;margin:6px 0 12px;padding:8px 12px;border:3px solid currentColor;border-radius:12px;background:transparent;color:inherit">
     <button type="button" class="btn primary" id="btnSave">점수 저장</button>
     <button type="button" class="btn" id="btnBoard">점수판 듣기</button>
+    <button type="button" class="btn" id="btnSlowerOver">느리게 말하기 (-)</button>
+    <button type="button" class="btn" id="btnFasterOver">빠르게 말하기 (=)</button>
     <button type="button" class="btn" id="btnAgainGame">다시 하기 (엔터)</button>
     <button type="button" class="btn" id="btnHomeOver">처음 화면으로 (8)</button>
     <h2>점수판 (상위 10명)</h2>
@@ -688,6 +690,8 @@
       if (e.target && e.target.tagName === "INPUT") return;
       if (e.key === "Enter") { e.preventDefault(); startGame(koMode ? "ko" : "en"); return; }
       if (e.key === "8") { e.preventDefault(); goHome(); return; }
+      if (e.key === "-") { e.preventDefault(); changeSpeed(-1); return; }   // 말이 빠르면 늦출 수 있어요
+      if (e.key === "=") { e.preventDefault(); changeSpeed(1); return; }
       return;
     }
     if (!$("start").hidden) {
@@ -774,6 +778,8 @@
   $("btnHomeOver").addEventListener("click", function () { ctx(); goHome(); });
   $("btnSave").addEventListener("click", function () { ctx(); saveScore(); });
   $("btnBoard").addEventListener("click", function () { ctx(); speakBoard(); });
+  $("btnSlowerOver").addEventListener("click", function () { ctx(); changeSpeed(-1); });
+  $("btnFasterOver").addEventListener("click", function () { ctx(); changeSpeed(1); });
   $("nameIn").addEventListener("keydown", function (e) {
     if (e.key === "Enter") { e.preventDefault(); ctx(); saveScore(); }
   });
