@@ -111,6 +111,14 @@ async def make_one(sem, text, voice, path):
         for attempt in range(3):
             try:
                 await edge_tts.Communicate(text, voice).save(str(path))
+                # 앞뒤 빈 소리를 잘라서 바로 나오게
+                import subprocess, os
+                ff = os.path.expandvars(r'%LOCALAPPDATA%\JYinfmpeg.exe')
+                flt = ('silenceremove=start_periods=1:start_silence=0.03:start_threshold=-45dB,'
+                       'areverse,silenceremove=start_periods=1:start_silence=0.03:start_threshold=-45dB,areverse')
+                tmp = path.with_suffix('.trim.mp3')
+                subprocess.run([ff, '-y', '-loglevel', 'error', '-i', str(path), '-af', flt, '-c:a', 'libmp3lame', '-q:a', '4', str(tmp)])
+                if tmp.exists() and tmp.stat().st_size > 0: tmp.replace(path)
                 return "ok"
             except Exception as e:  # 네트워크 일시 오류는 다시 시도해요
                 last = e
