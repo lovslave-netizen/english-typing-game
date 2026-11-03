@@ -325,8 +325,14 @@
   var curAudio = null;
   function stopAudio() { if (curAudio) { try { curAudio.pause(); } catch (e) {} curAudio = null; } }
   // 미리 만든 파일을 재생해요. 끝나면 done(true), 못 읽으면 done(false)
+  // 음성 파일은 미리 불러 두고 다시 쓰면 바로 나와요
+  var audioCache = {};
+  function audioFor(src) {
+    if (!audioCache[src]) { audioCache[src] = new Audio(src); audioCache[src].preload = "auto"; }
+    return audioCache[src];
+  }
   function playFile(src, rate, done) {
-    var a = new Audio(src), fin = false;
+    var a = audioFor(src), fin = false; a.currentTime = 0;
     function end(ok) { if (fin) return; fin = true; curAudio = null; done(ok); }
     a.playbackRate = rate;
     a.onended = function () { end(true); };
@@ -344,6 +350,7 @@
   }
   function speakSeq(parts) {
     parts = expandParts(parts);
+    parts.forEach(function (q) { var f = fileFor(q); if (f) audioFor(f); });   // 미리 불러두기
     var my = ++tok;
     stopAudio();
     try { if (synth) synth.cancel(); } catch (e) {}
@@ -570,10 +577,12 @@
       box.appendChild(b);
     });
     $("quiz").hidden = false;
-    var parts = (lead || []).concat([ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)]);
+    var speech = [ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)];
+    quizState.speech = speech;   // 1번 키를 누르면 이 문장을 다시 읽어요
+    var parts = (lead || []).concat(speech);
     
-    opts.forEach(function (o, i) { parts.push(ko(["에이", "에스", "디", "에프"][i]), enWord(o.en)); });
-    parts.push(ko("일번은 에이, 이번은 에스, 삼번은 디, 사번은 에프를 누르면 선택할 수 있어요."));
+    opts.forEach(function (o, i) { speech.push(ko(["에이", "에스", "디", "에프"][i]), enWord(o.en)); });
+    speech.push(ko("일번은 에이, 이번은 에스, 삼번은 디, 사번은 에프를 누르면 선택할 수 있어요."));
     $("fb").textContent = "";
     speakSeq(parts);
   }
@@ -827,6 +836,7 @@
     }
     if ($("app").hidden) return;
     if (quizState) {             // 보너스 퀴즈 중에는 1~4 번 키로 고르고, 다른 키는 무시해요
+      if (e.key === "1") { e.preventDefault(); speakSeq(quizState.speech); return; }   // 1번: 퀴즈 다시 듣기
       var qi = { a: 0, s: 1, d: 2, f: 3 }[e.key.toLowerCase()];
       if (qi !== undefined) { e.preventDefault(); answerQuiz(qi); return; }
       if (e.key === "=") { e.preventDefault(); changeSpeed(1); return; }   // 퀴즈 중에도 속도는 바꿀 수 있어요
