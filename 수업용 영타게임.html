@@ -381,7 +381,7 @@
       var p = parts[i];
       if (p.cb) { p.cb(); next(i + 1); return; }
       // 영어 문장은 말하기 속도와 따로 항상 천천히 읽어요 (안내 말만 속도 조절을 따라요)
-      var rate = (p.sent ? 0.9 : speedRate()) * (p.r || 1);
+      var rate = (p.sent ? 0.9 : speedRate()) * (p.r || 1) * 1.2;
       var src = fileFor(p);
       if (src) {
         // 파일을 못 읽으면 기계 음성으로 이어서 읽어요
@@ -703,6 +703,13 @@
     $("fb").textContent = t;
     speakSeq([ko("상자가 나타났어요!"), ko("열어 볼까요?"), ko("Y 키는 열기, N 키는 그냥 지나가기예요."), ko("B 키는 20포인트로 플러스를 올려요.")]);
   }
+  function koNum(n) {
+    var d = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"];
+    var h = Math.floor(n / 100), t = Math.floor(n / 10) % 10, s = "";
+    if (h) s += (h > 1 ? d[h] : "") + "백";
+    if (t) s += (t > 1 ? d[t] : "") + "십";
+    return s || "영";
+  }
   function buyBox() {
     if (!boxState) return;
     if (!ptSpend(BOX_COST)) {
@@ -715,7 +722,7 @@
     var t = "플러스를 10 올렸어요! 지금 상자 값은 +" + now + "만큼 올라가 있어요. 한 번 더 누르면 또 올라가요.";
     boxUI(true, t, true);
     $("fb").textContent = t;
-    speakSeq([ko("플러스가 10 올랐어요.")]);
+    speakSeq([ko("플러스를 십 올렸어요!"), ko("지금 상자 값은 플러스"), ko(koNum(now)), ko("만큼 올라가 있어요."), ko("한 번 더 누르면 또 올라가요.")]);
   }
   function openBox() {
     var lead = boxState.lead, boost = 10 + 10 * boxState.buy;

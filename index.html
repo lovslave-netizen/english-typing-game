@@ -87,7 +87,7 @@
     <button type="button" class="btn" id="btnBoard">점수판 듣기</button>
     <button type="button" class="btn" id="btnSlowerOver">느리게 말하기 (-)</button>
     <button type="button" class="btn" id="btnFasterOver">빠르게 말하기 (=)</button>
-    <button type="button" class="btn" id="btnAgainGame">다시 하기 (엔터)</button>
+    <button type="button" class="btn" id="btnAgainGame">다시 하기 (저장 후 엔터)</button>
     <button type="button" class="btn" id="btnHomeOver">처음 화면으로 (8)</button>
     <h2>점수판 (상위 10명)</h2>
     <ol id="board"></ol>
@@ -271,7 +271,7 @@
       if (my !== tok || i >= parts.length) return;
       var p = parts[i];
       if (p.cb) { p.cb(); next(i + 1); return; }
-      var rate = (p.slow ? SENT_RATE : speedRate()) * (p.r || 1);
+      var rate = (p.slow ? SENT_RATE : speedRate()) * (p.r || 1) * 1.2;
       var src = fileFor(p);
       if (src) {
         playFile(src, rate, function (ok) { if (ok) after(p, function () { next(i + 1); }); else speakMachine(p, i, my, next, rate); });
@@ -542,7 +542,6 @@
   }
   function saveScore() {
     var name = $("nameIn").value.trim();
-    if (!name) { say("이름을 입력해 주세요."); return; }
     if (!hasScoreUrl()) { say("점수판 주소가 아직 없어요."); return; }
     $("btnSave").disabled = true;
     say("점수를 저장하고 있어요.");
@@ -551,7 +550,8 @@
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (!d.ok) throw new Error("save");
-        say(name + "님, " + st.score + "점을 저장했어요.");
+        savedOk = true;
+        say((name ? name + "님, " : "") + st.score + "점을 저장했어요.");
         speakBoard();
       })
       .catch(function () {
@@ -559,9 +559,11 @@
         say("저장하지 못했어요. 인터넷과 점수판 주소를 확인해 주세요.");
       });
   }
+  var savedOk = false;
   function endGame(lead) {
     stopAll(); stopClock();
     st.over = true;
+    savedOk = false;
     ptAdd(30);
     $("app").hidden = true; $("over").hidden = false;
     $("nameIn").value = ""; nameLast = ""; $("btnSave").disabled = false; $("board").textContent = "";
@@ -569,8 +571,8 @@
     $("overText").textContent = "10문장을 다 했어요. 총점 " + st.score + "점이에요. 완벽하게 맞힌 문장은 " + st.perfect + "개예요. 포인트 30을 받았어요. 지금 칭호는 " + ptTitle() + "이에요.";
     speakSeq((lead || []).concat([ko("10문장을 다 했어요."), ko("총점"), ko(st.score + "점"), ko("이에요."),
       ko("완벽하게 맞힌 문장은"), ko(st.perfect + "개예요."),
-      ko("이름을 쓰고 엔터를 누르면 점수를 저장해요."), ko("점수판을 들으려면 점수판 듣기 버튼을 누르세요."),
-      ko("다시 하려면 엔터, 처음 화면은 8번을 누르세요.")]));
+      ko("엔터를 누르면 점수를 저장해요. 이름은 안 써도 돼요."), ko("점수판을 들으려면 점수판 듣기 버튼을 누르세요."),
+      ko("저장한 뒤 엔터를 누르면 다시 해요. 처음 화면은 8번을 누르세요.")]));
   }
 
   /* 시간 (H5): 문장을 들은 뒤부터 재고 똑딱 소리를 내요 */
@@ -816,6 +818,13 @@
     $("fb").textContent = t;
     speakSeq([ko("상자가 나타났어요!"), ko("열어 볼까요?"), ko("Y 키는 열기, N 키는 그냥 지나가기예요."), ko("B 키는 20포인트로 플러스를 올려요.")]);
   }
+  function koNum(n) {
+    var d = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"];
+    var h = Math.floor(n / 100), t = Math.floor(n / 10) % 10, s = "";
+    if (h) s += (h > 1 ? d[h] : "") + "백";
+    if (t) s += (t > 1 ? d[t] : "") + "십";
+    return s || "영";
+  }
   function buyBox() {
     if (!boxState) return;
     if (!ptSpend(BOX_COST)) {
@@ -828,7 +837,7 @@
     var t = "플러스를 10 올렸어요! 지금 상자 값은 +" + now + "만큼 올라가 있어요. 한 번 더 누르면 또 올라가요.";
     boxUI(true, t, true);
     $("fb").textContent = t;
-    speakSeq([ko("플러스가 10 올랐어요.")]);
+    speakSeq([ko("플러스를 십 올렸어요!"), ko("지금 상자 값은 플러스"), ko(koNum(now)), ko("만큼 올라가 있어요."), ko("한 번 더 누르면 또 올라가요.")]);
   }
   function openBox() {
     var lead = boxState.lead, boost = 10 + 10 * boxState.buy;
@@ -1077,7 +1086,8 @@
     nameLast = v;
   });
   $("nameIn").addEventListener("keydown", function (e) {
-    if (e.key === "Enter") { e.preventDefault(); ctx(); saveScore(); }
+    // 엔터 = 저장 (이름은 비워도 돼요, 한 번만). 저장한 뒤 엔터 = 다시 하기
+    if (e.key === "Enter") { e.preventDefault(); ctx(); if (!savedOk) saveScore(); else startGame(koMode ? "ko" : "en"); }
   });
   $("btnSlower").addEventListener("click", function () { ctx(); changeSpeed(-1); });
   $("btnFaster").addEventListener("click", function () { ctx(); changeSpeed(1); });
