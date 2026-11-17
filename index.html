@@ -31,6 +31,7 @@
   <section id="start" aria-label="시작">
     <p class="meta">화살표(← →)로 고르고 엔터를 누르면 시작해요. 보너스 퀴즈 답은 A, S, D, F 키예요.</p>
     <p id="startMsg" role="status" aria-live="polite">엔터를 누르면 시작합니다.</p>
+    <p class="meta" id="pointLine"></p>
     <button type="button" class="btn primary" id="btnStart">영어 타자 연습</button>
     <button type="button" class="btn" id="btnKorean">한글 타자 연습</button>
     <button type="button" class="btn" id="btnScoreStart">점수보기</button>
@@ -49,6 +50,7 @@
       <textarea id="hangulInput" aria-label="한글 입력" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;font-size:16px"></textarea>
       <p class="meta" id="cursor" aria-live="polite"></p>
       <p class="meta" id="scoreline" aria-live="polite"></p>
+      <p class="meta" id="ptHud"></p>
       <p class="meta" id="speedline"></p>
       <div class="fb" id="fb" role="status" aria-live="polite"></div>
 
@@ -449,6 +451,7 @@
     if (st.sent >= ROUND_LEN) { endGame(lead); return; }
     quizCount++;
     if (quizCount >= quizEvery) { startQuiz(lead); return; }   // 5문장마다 보너스 퀴즈
+    if (Math.random() < 1 / 30) { startBox(lead); return; }   // 랜덤박스
     changeSentence(1, lead);
     $("fb").textContent = lead.map(function (x) { return x.t; }).join(" ");
   }
@@ -559,10 +562,11 @@
   function endGame(lead) {
     stopAll(); stopClock();
     st.over = true;
+    ptAdd(30);
     $("app").hidden = true; $("over").hidden = false;
     $("nameIn").value = ""; nameLast = ""; $("btnSave").disabled = false; $("board").textContent = "";
     setTimeout(function () { $("nameIn").focus(); }, 300);
-    $("overText").textContent = "10문장을 다 했어요. 총점 " + st.score + "점이에요. 완벽하게 맞힌 문장은 " + st.perfect + "개예요.";
+    $("overText").textContent = "10문장을 다 했어요. 총점 " + st.score + "점이에요. 완벽하게 맞힌 문장은 " + st.perfect + "개예요. 포인트 30을 받았어요. 지금 칭호는 " + ptTitle() + "이에요.";
     speakSeq((lead || []).concat([ko("10문장을 다 했어요."), ko("총점"), ko(st.score + "점"), ko("이에요."),
       ko("완벽하게 맞힌 문장은"), ko(st.perfect + "개예요."),
       ko("이름을 쓰고 엔터를 누르면 점수를 저장해요."), ko("점수판을 들으려면 점수판 듣기 버튼을 누르세요."),
@@ -690,10 +694,129 @@
   // 한글 입력 모드를 켜고 끄면서 게임을 시작해요 ("ko" 면 한글로 치기)
   /* 보너스 퀴즈: 5문장마다 영어 단어 퀴즈. 맞히면 200점, 틀리면 100점 */
   var QUIZ = [
-    { ko: "고양이", en: "cat" }, { ko: "개", en: "dog" }, { ko: "사과", en: "apple" }, { ko: "책", en: "book" },
-    { ko: "공", en: "ball" }, { ko: "태양", en: "sun" }, { ko: "물", en: "water" }, { ko: "학교", en: "school" },
-    { ko: "집", en: "house" }, { ko: "나무", en: "tree" }, { ko: "빨간색", en: "red" }, { ko: "파란색", en: "blue" }
+    { ko: "도서관", en: "library", mean: "책을 모아 두고 빌려주는 곳" },
+    { ko: "약속", en: "promise", mean: "꼭 지키겠다고 하는 말" },
+    { ko: "기억하다", en: "remember", mean: "잊지 않고 머릿속에 떠올리다" },
+    { ko: "바다", en: "ocean", mean: "아주 넓고 짠 큰 물" },
+    { ko: "무지개", en: "rainbow", mean: "비가 그친 뒤 하늘에 뜨는 여러 색 띠" },
+    { ko: "지진", en: "earthquake", mean: "땅이 갑자기 흔들리는 것" },
+    { ko: "여행", en: "journey", mean: "먼 곳으로 떠나는 긴 나들이" },
+    { ko: "용기", en: "courage", mean: "무서워도 해내는 힘" },
+    { ko: "정직한", en: "honest", mean: "거짓말을 하지 않는" },
+    { ko: "상상하다", en: "imagine", mean: "머릿속으로 그려 보다" }
   ];
+  // 포인트: 한 판 30, 보너스 퀴즈 정답 10. 힌트는 포인트를 써서 봐요 (20, 30, 50)
+  var PT_KEY = "영타_포인트_v1", PT = { total: 0, balance: 0 };
+  var HINT_COST = [20, 30, 50];
+  var TITLES = [[1000, "타자 달인"], [600, "타자 고수"], [300, "타자 연습생"], [100, "타자 초보"], [0, "타자 새싹"]];
+  function ptLoad() { try { var d = JSON.parse(localStorage.getItem(PT_KEY) || "null"); if (d) { PT.total = d.total || 0; PT.balance = d.balance || 0; } } catch (e) {} }
+  function ptSave() { try { localStorage.setItem(PT_KEY, JSON.stringify(PT)); } catch (e) {} }
+  function ptTitle() { for (var i = 0; i < TITLES.length; i++) if (PT.total >= TITLES[i][0]) return TITLES[i][1]; return TITLES[TITLES.length - 1][1]; }
+  function ptOn() { return true; }
+  function ptShow() {
+    var t = "칭호: " + ptTitle() + " · 포인트 " + PT.balance + " (누적 " + PT.total + ")";
+    var el = $("pointLine"); if (el) el.textContent = t;
+    var hud = $("ptHud"); if (hud) hud.textContent = t;
+  }
+  function ptAdd(n) { if (!ptOn()) return; PT.total += n; PT.balance += n; ptSave(); ptShow(); }
+  function ptSpend(n) { if (!ptOn() || PT.balance < n) return false; PT.balance -= n; ptSave(); ptShow(); return true; }
+  function shuffleArr(a) {
+    return a.map(function (x) { return [Math.random(), x]; }).sort(function (p, q) { return p[0] - q[0]; }).map(function (p) { return p[1]; });
+  }
+  function startQuiz(lead) {
+    var pool = QUIZ;
+    var q = pool[Math.floor(Math.random() * pool.length)];
+    var others = shuffleArr(pool.filter(function (x) { return x !== q; })).slice(0, 3);
+    var opts = shuffleArr([q].concat(others));
+    quizState = { q: q, opts: opts, ans: opts.indexOf(q), hintLv: 0 };
+    quizCount = 0; quizEvery = 5;
+    if (!$("quizHint")) {
+      var hp = document.createElement("p"); hp.id = "quizHint"; hp.setAttribute("aria-live", "polite");
+      $("quizOpts").parentNode.insertBefore(hp, $("quizOpts"));
+      var hb = document.createElement("button"); hb.type = "button"; hb.className = "btn"; hb.id = "quizHintBtn";
+      hb.addEventListener("click", function () { ctx(); buyHint(); });
+      $("quizOpts").parentNode.insertBefore(hb, $("quizOpts").nextSibling);
+    }
+    $("quizHint").textContent = "";
+    $("quizHintBtn").textContent = "힌트 보기 (H키) · " + HINT_COST[0] + "포인트";
+    $("quizHintBtn").hidden = false;
+    $("quizQ").textContent = "보너스 퀴즈! 이 말을 영어로 하면 무엇일까요? " + q.ko + "  (A, S, D, F 로 고르세요)";
+    var box = $("quizOpts"); box.textContent = "";
+    opts.forEach(function (o, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "btn";
+      b.textContent = "ASDF"[i] + ". " + o.en;
+      b.addEventListener("click", function () { ctx(); answerQuiz(i); });
+      box.appendChild(b);
+    });
+    $("quiz").hidden = false;
+    var speech = [ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)];
+    speech[0].pause = 300; speech[1].pause = 300; speech[2].pause = 600;
+    quizState.speech = speech;   // 1번 키를 누르면 이 문장을 다시 읽어요
+    opts.forEach(function (o, i) {
+      speech.push(ko(["에이", "에스", "디", "에프"][i]), enWord(o.en));
+      speech[speech.length - 2].pause = 250; speech[speech.length - 1].pause = 900;
+    });
+    speech.push(ko("일번은 에이, 이번은 에스, 삼번은 디, 사번은 에프를 누르면 선택할 수 있어요."));
+    var parts = (lead || []).concat(speech);   // 보기까지 다 채운 뒤에 읽을 목록을 만들어요
+    $("fb").textContent = "";
+    speakSeq(parts);
+  }
+  function buyHint() {
+    if (!quizState) return;
+    var lv = quizState.hintLv, w = quizState.q;
+    if (lv >= 3) { speakSeq([ko("힌트를 모두 봤어요.")]); return; }
+    if (!ptSpend(HINT_COST[lv])) { speakSeq([ko("포인트가 부족해요.")]); return; }
+    var t = lv === 0 ? "글자는 " + w.en.length + "글자예요." : (lv === 1 ? "첫 글자는 " + w.en.charAt(0) + "예요." : "뜻은 " + w.mean + "이에요.");
+    quizState.hintLv++;
+    $("quizHint").textContent += (lv > 0 ? " " : "") + t;
+    $("quizHintBtn").textContent = quizState.hintLv >= 3 ? "힌트를 모두 봤어요" : "다음 힌트 보기 (H키) · " + HINT_COST[quizState.hintLv] + "포인트";
+    speakSeq([ko(t)]);
+  }
+  function answerQuiz(i) {
+    if (!quizState) return;
+    var right = i === quizState.ans, answer = quizState.opts[quizState.ans];
+    quizState = null;
+    $("quiz").hidden = true;
+    st.score += right ? 200 : 100;
+    if (right) ptAdd(10);
+    var res = right ? [ko("정답이에요!"), ko("200점")].concat(ptOn() ? [ko("10포인트를 받았어요")] : []) : [ko("아쉬워요."), ko("정답은"), enWord(answer.en), ko("100점")];
+    render();
+    changeSentence(1, res);
+  }
+  function closeQuiz() { quizState = null; quizCount = 0; $("quiz").hidden = true; }
+
+  // 랜덤박스: 문장을 끝낼 때마다 1/30 확률로 나와요. 열지 말지는 본인이 골라요.
+  var boxState = null;
+  // 상자 값: -100 ~ 100 을 10 단위로 고르고, 모든 값에 +10 (기본) 과 포인트로 산 +10 을 더해요. 100 을 넘으면 100.
+  var BOX_COST = 20;
+  function startBox(lead) {
+    boxState = { lead: lead, buy: 0 };
+    $("fb").textContent = "상자가 나타났어요! Y 키는 열기, N 키는 그냥 지나가기예요. B 키는 20포인트로 +10을 올려요.";
+    speakSeq([ko("상자가 나타났어요!"), ko("열어 볼까요?"), ko("Y 키는 열기, N 키는 그냥 지나가기예요."), ko("B 키는 20포인트로 플러스를 올려요.")]);
+  }
+  function buyBox() {
+    if (!boxState) return;
+    if (!ptSpend(BOX_COST)) { speakSeq([ko("포인트가 부족해요.")]); return; }
+    boxState.buy++;
+    speakSeq([ko("플러스가 10 올랐어요.")]);
+  }
+  function openBox() {
+    var lead = boxState.lead, boost = 10 + 10 * boxState.buy;
+    boxState = null;
+    var idx = Math.floor(Math.random() * 21);          // -100 ~ 100 (21칸)
+    var v = Math.min(100, -100 + 10 * idx + boost);
+    st.score += v;
+    var msg = v > 0 ? "상자에서 " + v + "점이 나왔어요!" : (v < 0 ? "상자에서 " + (-v) + "점을 잃었어요." : "상자는 비어 있었어요. 0점이에요.");
+    render();
+    changeSentence(1, lead.concat([ko(msg)]));
+  }
+  function skipBox() {
+    var lead = boxState.lead;
+    boxState = null;
+    changeSentence(1, lead.concat([ko("상자를 그냥 지나갔어요.")]));
+  }
+  ptLoad(); ptShow();   // 이 기기에 저장된 칭호와 포인트를 불러와요
   var OPT_NAMES = ["일번", "이번", "삼번", "사번"];
   var quizState = null, quizCount = 0, quizEvery = 5;
   function shuffleArr(a) {
@@ -808,8 +931,16 @@
 
   document.addEventListener("keydown", function (e) {
     if (e.isComposing) return;   // 한글 조합 중에는 키를 가로채지 않아요
+    if (boxState) {              // 랜덤박스: Y 는 열기, N 은 지나가기, B 는 포인트로 플러스 올리기
+      var bk = e.key.toLowerCase();
+      if (bk === "y") { e.preventDefault(); openBox(); return; }
+      if (bk === "n") { e.preventDefault(); skipBox(); return; }
+      if (bk === "b") { e.preventDefault(); buyBox(); return; }
+      if (!/^[0-9=\-]$/.test(e.key)) return;
+    }
     if (quizState) {             // 퀴즈 중에는 1~4 번 키로 고르고, 다른 키는 무시해요
       if (e.key === "1") { e.preventDefault(); speakSeq(quizState.speech); return; }   // 1번: 퀴즈 다시 듣기
+      if (e.key.toLowerCase() === "h") { e.preventDefault(); buyHint(); return; }   // H: 힌트 (포인트 사용)
       // 한글 자판에서는 ㅁㄴㅇㄹ 이 같은 자리(A S D F)라서 실제 키 자리(code)로도 골라요
       var qi = { a: 0, s: 1, d: 2, f: 3 }[e.key.toLowerCase()];
       if (qi === undefined) qi = { KeyA: 0, KeyS: 1, KeyD: 2, KeyF: 3 }[e.code];

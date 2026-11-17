@@ -206,26 +206,23 @@
           h: ["사과인지 먼저 확인해요.", "바나나는 사과가 아니에요.", "사과가 아니면 만세예요."],
           e: "만세예요. 사과가 아니면, 이게 아니면이에요." }
       ] },
-    { n: 6, t: "방향키와 편집키", k: "R",
-      intro: "오늘은 3보드의 방향키와 편집키예요. 같은 일을 여러 번 시키는 걸 반복이라고 해요.",
+{ n: 6, t: "기능키와 if·if-else", k: "R",
+      intro: "오늘은 왼쪽 기능키와 if, if-else예요. 만약 ~라면 ~한다, 아니면 다른 것을 한다, 이게 if와 if-else예요.",
       qs: [
-        { q: "방향키 중에서 혼자 위에 있는 키는 무엇일까요?", o: ["왼쪽 화살표", "위쪽 화살표", "아래쪽 화살표", "오른쪽 화살표"], a: 1,
-          h: ["방향키는 3보드 맨 아랫줄 쪽에 거꾸로 된 티 모양으로 있어요.", "오른손 중지가 눌러요.", "아래쪽 화살표 바로 위예요."],
-          e: "위쪽 화살표예요." },
-        { q: "방향키 맨 아랫줄에서 가운데 키는 무엇일까요?", o: ["왼쪽 화살표", "위쪽 화살표", "아래쪽 화살표", "오른쪽 화살표"], a: 2,
-          h: ["방향키 맨 아랫줄이에요. 화살표가 세 개 있어요.", "오른손 중지가 눌러요.", "왼쪽 화살표와 오른쪽 화살표 사이예요."],
-          e: "아래쪽 화살표예요." },
-        { q: "INS, HOM, PGU 줄에서 가운데 키는 무엇일까요?", o: ["INS", "HOM", "PGU", "DEL"], a: 1,
-          h: ["맨 윗줄 바로 아래 줄이에요.", "가운데 손가락으로 눌러요.", "INS와 PGU 사이예요."],
-          e: "HOM이에요. 줄의 맨 앞으로 가는 키예요." },
-        { q: "DEL, END, PGD 줄에서 맨 왼쪽 키는 무엇일까요?", o: ["DEL", "END", "PGD", "INS"], a: 0,
-          h: ["HOM 줄 바로 아래 줄이에요.", "맨 왼쪽이에요.", "INS 바로 아래예요."],
-          e: "DEL이에요. 커서 오른쪽 글자를 지우는 키예요." },
-        { q: "박수, 네 번 반복! 박수를 몇 번 쳐야 할까요?", o: ["두 번", "세 번", "네 번", "열 번"], a: 2,
-          h: ["반복은 같은 일을 여러 번 하는 거예요.", "박수가 어떤 일인지 생각해요.", "숫자는 네 번이에요."],
-          e: "네 번이에요. 같은 일을 여러 번 시키는 걸 반복이라고 해요." }
+        { q: "1보드 맨 위 왼쪽 구석에 혼자 있는 키는 무엇일까요?", o: ["ESC", "TAB", "CAP", "SPACE"], a: 0,
+          h: ["맨 윗줄이에요.", "가장 왼쪽 구석이에요.", "취소하거나 빠져나갈 때 누르는 키예요."],
+          e: "ESC예요. 잘못 열었을 때 누르는 취소 키예요." },
+        { q: "칸을 넘길 때 쓰는 기능키는 무엇일까요?", o: ["TAB", "ESC", "CAP", "SPACE"], a: 0,
+          h: ["맨 윗줄 가장 왼쪽에 있는 키예요.", "칸이나 항목을 넘길 때 써요.", "다음 칸으로 넘어가는 키예요."],
+          e: "TAB이에요. 다음 칸으로 넘어갈 때 눌러요." },
+        { q: "만약 비가 오면 우산을 들고 학교에 간다. 오늘 비가 와요. 어떻게 할까요?", o: ["우산을 들고 간다", "그냥 간다", "모자를 쓰고 간다", "장갑을 끼고 간다"], a: 0,
+          h: ["만약 ~라면은 조건이에요.", "비가 오나요? 네, 비가 와요.", "조건이 맞으면 우산을 들고 가요."],
+          e: "우산을 들고 간다예요. 조건이 맞으면 그 일을 해요." },
+        { q: "비가 오면 우산을 들고 간다. 아니면 모자를 쓰고 간다. 오늘은 비가 안 와요. 어떻게 할까요?", o: ["우산을 들고 간다", "모자를 쓰고 간다", "장갑을 끼고 간다", "그냥 간다"], a: 1,
+          h: ["먼저 비가 오는지 확인해요.", "비가 안 오니까 아니면 쪽이에요.", "아니면 뒤에 붙은 일을 해요."],
+          e: "모자를 쓰고 간다예요. if-else는 맞으면 A, 아니면 B예요." }
       ] },
-    { n: 7, t: "숫자패드와 변수", k: "I",
+        { n: 7, t: "숫자패드와 변수", k: "I",
       intro: "오늘은 5 돌기를 기준으로 숫자패드를 익혀요. 이름표가 붙은 상자에 값을 넣어 두는 걸 변수라고 해요.",
       qs: [
         { q: "5에서 바로 위에 있는 숫자는 무엇일까요?", o: ["2", "4", "6", "8"], a: 3,
@@ -466,7 +463,7 @@
   /* ───────── 화면 ───────── */
   function render() {
     stopSpeech();
-    var fn = { start: viewStart, select: viewSelect, intro: viewIntro, q: viewQ, m: viewM, clear: viewClear, help: viewHelp }[S.screen];
+    var fn = { start: viewStart, select: viewSelect, intro: viewIntro, q: viewQ, m: viewM, clear: viewClear, help: viewHelp, charSetup: viewCharSetup, charIntro: viewCharIntro, char: viewChar, battle: viewBattle }[S.screen];
     fn();
   }
   function setMain(html) { main.innerHTML = html; window.scrollTo(0, 0); }
@@ -522,6 +519,7 @@
       '<p class="meta">' + (hasM ? '코딩 미션 ' + MISSIONS[s.n].length + '개와 ' : '') + '자물쇠 ' + s.qs.length + '개를 풀면 열쇠 글자를 얻어요.</p>' +
       '<div class="row">' + (hasM ? '<button type="button" class="btn primary say" data-action="startM">코딩 미션 시작</button>' : '') +
       '<button type="button" class="btn' + (hasM ? '' : ' primary') + ' say" data-action="startQ">' + (hasM ? '자물쇠로 바로 가기' : '자물쇠 풀기') + '</button>' +
+      (s.n === 6 ? '<button type="button" class="btn say" data-action="charStart">🎨 나만의 캐릭터 만들기</button>' : '') + (s.n === 7 ? '<button type="button" class="btn say" data-action="battleStart">⚔️ 마법 배틀</button>' : '') +
       '<button type="button" class="btn say" data-action="toSelect">방 선택</button></div></section>');
     S.narr = (rec ? rec + " " : "") + (got ? "지금 모은 열쇠 글자는 " + got + "예요. " : "") + s.n + "회, " + st.room + ". " + st.scene +
       (hasM ? " 먼저 코딩 미션 장치를 살펴봐요. 코딩 미션 시작 버튼을 누르세요." : " 자물쇠 풀기 버튼을 누르세요.");
@@ -537,6 +535,498 @@
   function optSay(q, i) {
     var st = S.wrong.indexOf(i) >= 0 ? ". 틀린 보기예요" : (S.answered && i === q.a ? ". 열리는 보기예요" : "");
     return OPTW[i] + ", " + spokenOpt(q.o[i]) + st;
+  }
+
+  /* ───────── 나만의 캐릭터 만들기 (6회 활동): 질문 9개, 친구 2~5명, 고른 쪽에 2점씩 ───────── */
+  var CH_AXES = [{ a: "용기", b: "지혜" }, { a: "자연", b: "기계" }, { a: "혼자", b: "함께" }, { a: "탐구", b: "실천" }];
+  var CH_Q = [
+    { axis: 0, q: "친구들과 산에 놀러 갔어요. 저 멀리 높은 언덕이나 전망대가 보이네요. 여러분이라면 어떻게 하고 싶나요?", A: "네! 직접 올라가 볼래요.", B: "조금 걱정돼요. 먼저 살펴볼래요." },
+    { axis: 0, q: "새로운 것을 배우고 있는데, 잘 모르는 내용이 나왔어요. 여러분은 그 내용을 어떻게 알아보고 싶나요?", A: "직접 해보면서 알아봐요.", B: "책이나 자료를 찾아봐요." },
+    { axis: 0, q: "모험을 하던 중 처음 보는 길을 발견했어요. 길 끝에 무엇이 있을지 궁금하네요. 여러분이라면 어떻게 할까요?", A: "궁금하니까 먼저 가서 살펴볼래요.", B: "어디로 이어지는 길인지 먼저 알아보고 갈래요." },
+    { axis: 1, q: "주말에 신나는 나들이를 갈 수 있게 되었어요. 하루 동안 원하는 곳에 갈 수 있다면 어디로 가고 싶나요?", A: "숲이나 바다에 가고 싶어요.", B: "과학관이나 전시관에 가고 싶어요." },
+    { axis: 1, q: "장난감 가게에 재미있는 장난감들이 가득해요. 그중 하나를 고를 수 있다면 어떤 장난감을 갖고 싶나요?", A: "식물이나 동물을 키우는 장난감!", B: "블록이나 로봇 장난감!" },
+    { axis: 1, q: "집이나 학교에서 무언가를 가꾸거나 고칠 일이 생겼어요. 여러분은 어떤 일을 해보고 싶나요?", A: "화분이나 정원을 가꾸는 일!", B: "자전거나 기계를 고치는 일!" },
+    { axis: 2, q: "학교에서 쉬는 시간이 되었어요. 이제 자유롭게 시간을 보낼 수 있네요. 여러분은 무엇을 하며 쉬고 싶나요?", A: "혼자 책을 읽고 싶어요.", B: "친구들과 함께 놀고 싶어요." },
+    { axis: 2, q: "학교에서 친구들과 함께 발표할 일이 생겼어요. 발표를 준비해야 한다면 여러분은 어떻게 준비하고 싶나요?", A: "혼자 준비해서 발표할래요.", B: "친구들과 함께 준비할래요." },
+    { axis: 2, q: "혼자 힘으로 해결하기 어려운 문제가 생겼어요. 여러분이라면 이 문제를 어떻게 해결하고 싶나요?", A: "혼자서 먼저 해결해 볼래요.", B: "친구에게 물어보고 함께 해결할래요." },
+    { axis: 3, q: "교실에 처음 보는 식물이 들어왔어요. 이 식물을 만날 수 있다면 여러분은 무엇을 해보고 싶나요?", A: "가만히 관찰하며 특징을 살펴볼래요.", B: "직접 화분을 옮기고 물을 줘 볼래요." },
+    { axis: 3, q: "여러분이 좋아하는 장난감이 갑자기 고장 났어요. 다시 움직이게 만들려면 어떻게 해보고 싶나요?", A: "어떻게 움직이는지 먼저 자세히 알아볼래요.", B: "직접 뜯어보고 고쳐 볼래요." },
+    { axis: 3, q: "친구가 새로운 놀이 방법을 알려주었어요. 아직 해본 적 없는 놀이라면 여러분은 어떻게 해보고 싶나요?", A: "규칙을 먼저 꼼꼼히 생각해 볼래요.", B: "바로 해 보면서 익힐래요." }
+  ];
+  var CH_ORD = ["첫 번째", "두 번째", "세 번째", "네 번째", "다섯 번째", "여섯 번째", "일곱 번째", "여덟 번째", "아홉 번째", "열 번째", "열한 번째", "열두 번째"];
+  var CH_RESULT = {
+    "용기|자연|혼자|실천": { name: "산악 탐험가", desc: "높은 산과 깊은 숲도 씩씩하게 혼자 탐험하는 친구예요! 직접 새로운 길을 찾아내고, 누구보다 먼저 모험을 시작해요." },
+    "용기|자연|혼자|탐구": { name: "숲속 길잡이", desc: "숲속에 숨겨진 길과 신기한 생물을 혼자 찾아다니는 친구예요! 작은 흔적도 놓치지 않고 살펴보며 비밀의 지도를 만들어요." },
+    "용기|자연|함께|실천": { name: "구조대원", desc: "산과 바다에서 도움이 필요한 친구를 구하는 용감한 친구예요! 친구들과 힘을 합쳐 어려운 일도 척척 해내요." },
+    "용기|자연|함께|탐구": { name: "자연 탐사 대원", desc: "친구들과 숲과 바다를 탐험하며 새로운 자연의 비밀을 찾아내는 친구예요! 신기한 것을 발견하면 함께 관찰하고 기록해요." },
+    "용기|기계|혼자|실천": { name: "우주 조종사", desc: "멋진 우주선을 직접 조종해 새로운 행성을 찾아 떠나는 친구예요! 낯선 기계도 두려워하지 않고 용감하게 다뤄요." },
+    "용기|기계|혼자|탐구": { name: "우주 관측가", desc: "망원경으로 별과 행성을 관찰하며 우주의 비밀을 찾는 친구예요! 아무도 발견하지 못한 새로운 별을 찾아내고 싶어 해요." },
+    "용기|기계|함께|실천": { name: "로봇 대회 선수", desc: "친구들과 힘을 합쳐 멋진 로봇을 만들고 대회에 도전하는 친구예요! 어려운 과제도 포기하지 않고 끝까지 도전해요." },
+    "용기|기계|함께|탐구": { name: "로봇 연구팀", desc: "친구들과 머리를 맞대고 로봇의 움직임을 연구하는 친구들이에요! 여러 가지 실험을 하며 더 똑똑하고 멋진 로봇을 만들어요." },
+    "지혜|자연|혼자|실천": { name: "정원사", desc: "나만의 작은 정원을 가꾸며 꽃과 나무를 정성껏 돌보는 친구예요! 직접 씨앗을 심고 물을 주며 아름다운 정원을 만들어요." },
+    "지혜|자연|혼자|탐구": { name: "식물학자", desc: "식물과 나무를 자세히 관찰하며 자연의 신기한 비밀을 알아내는 친구예요! 작은 잎사귀 하나에서도 새로운 사실을 발견해요." },
+    "지혜|자연|함께|실천": { name: "동물 보호사", desc: "아픈 동물을 돌보고 도움이 필요한 생명을 지켜주는 친구예요! 친구들과 함께 동물들이 행복하게 지낼 수 있도록 도와줘요." },
+    "지혜|자연|함께|탐구": { name: "생태 조사원", desc: "친구들과 숲과 들판을 살펴보며 동물과 식물의 이야기를 모으는 친구예요! 관찰한 내용을 함께 정리해 자연의 비밀을 밝혀내요." },
+    "지혜|기계|혼자|실천": { name: "발명가", desc: "머릿속에 떠오른 멋진 생각을 직접 물건으로 만들어 내는 친구예요! 고장 난 물건도 새로운 아이디어로 뚝딱 고쳐내요." },
+    "지혜|기계|혼자|탐구": { name: "과학자", desc: "혼자서 궁금한 것을 깊이 생각하고 여러 가지 실험을 해보는 친구예요! 작은 궁금증도 그냥 지나치지 않고 끝까지 답을 찾아요." },
+    "지혜|기계|함께|실천": { name: "프로그래머", desc: "친구들과 함께 컴퓨터로 재미있는 프로그램과 게임을 만드는 친구예요! 생각한 것을 하나씩 실행해 멋진 작품으로 완성해요." },
+    "지혜|기계|함께|탐구": { name: "데이터 분석가", desc: "친구들과 숫자와 자료 속에 숨겨진 규칙을 찾아내는 친구예요! 여기저기 흩어진 정보를 모아 새로운 사실을 발견해요." }
+  };
+  // 친구 이름 (처음에는 1번째 친구, 2번째 친구 …)
+  var CH = { names: ["1번째 친구", "2번째 친구", "3번째 친구", "4번째 친구"], ans: [], pos: 0 };
+  var CH_N = 4;
+
+  function chN() { return CH_N; }
+  function chTotal() { return chN() * CH_Q.length; }
+  function chStartAnswers() {
+    CH.ans = [];
+    for (var s = 0; s < chN(); s++) { CH.ans.push([]); for (var q = 0; q < CH_Q.length; q++) CH.ans[s].push(null); }
+    CH.pos = 0;
+  }
+  // 걸음 pos: 질문 q 에 친구 s 가 답해요. 질문마다 모든 친구가 차례로 답하고 다음 질문으로 가요.
+  function chQ(p) { return Math.floor(p / chN()); }
+  function chS(p) { return p % chN(); }
+
+  // 이름 뒤에 '친구'를 붙여 불러요 (이미 '친구'로 끝나면 그대로)
+  function chCall(n) { return /친구$/.test(n) ? n : n + " 친구"; }
+  // 입력 칸의 이름을 읽어 두어요 (칸을 늘리거나 줄여도 쓴 이름이 사라지지 않게)
+  function chReadNames() {
+    var out = [];
+    for (var s = 0; s < CH.names.length; s++) {
+      var el = document.getElementById("chn" + s);
+      var v = el ? el.value.trim() : "";
+      out.push(v || (s + 1) + "번째 친구");
+    }
+    CH.names = out;
+  }
+
+  // 1. 시작 화면: 친구 이름 입력
+  function viewCharSetup() {
+    var rows = "";
+    for (var s = 0; s < CH.names.length; s++) {
+      rows += '<label for="chn' + s + '">' + (s + 1) + '번째 친구 이름</label>' +
+        '<input id="chn' + s + '" type="text" maxlength="10" value="' + esc(CH.names[s]) + '" placeholder="이름을 입력해 주세요" autocomplete="off">';
+    }
+    setMain('<section><h2 tabindex="-1" id="h">✨ 나만의 캐릭터 만들기</h2>' +
+      '<p>우리 함께 모험을 떠나볼까요? 친구들의 이름을 입력해 주세요.</p>' +
+      '<p class="meta">친구 4명이 함께해요!</p>' +
+      '<div class="box">' + rows + '</div>' +
+      '<div class="row"><button type="button" class="btn primary say" data-action="chGo">모험 시작하기 🚀</button>' +
+      '<button type="button" class="btn say" data-action="charBack">6회 화면으로</button></div></section>');
+    S.narr = "안녕하세요! 나만의 멋진 캐릭터를 만들어 볼 거예요. 함께할 친구들의 이름을 입력해 주세요. 이름을 다 입력했다면 모험 시작하기를 눌러 주세요!";
+    focusEl(document.getElementById("h")); speak(S.narr);
+  }
+
+  // 2. 모험의 시작 안내
+  function viewCharIntro() {
+    setMain('<section><h2 tabindex="-1" id="h">우리의 특별한 모험이 시작돼요!</h2>' +
+      '<p>여러분은 지금부터 신나는 모험을 떠날 거예요.</p>' +
+      '<p>어떤 곳을 좋아하는지, 어떤 일을 잘하는지, 친구들과 어떻게 지내는지 알려 주세요.</p>' +
+      '<p>여러분의 선택에 따라 세상에 하나뿐인 멋진 캐릭터가 만들어진답니다!</p>' +
+      '<p><strong>자, 어떤 캐릭터가 탄생할까요?</strong></p>' +
+      '<div class="row"><button type="button" class="btn primary say" data-action="chPlay">질문 시작하기</button>' +
+      '<button type="button" class="btn say" data-action="charStart">이름 다시 입력하기</button></div></section>');
+    S.narr = "이제 신나는 모험을 시작할 거예요! 앞으로 나오는 열두 가지 질문에 솔직하게 대답해 주세요. 여러분이 어떤 선택을 하느냐에 따라 서로 다른 캐릭터가 만들어져요. 어떤 캐릭터가 나올지 기대해 봐요!";
+    focusEl(document.getElementById("h")); speak(S.narr);
+  }
+
+  function chTable(cur) {
+    var head = "<tr><th>이름</th>";
+    for (var q = 0; q < CH_Q.length; q++) head += "<th>" + (q + 1) + "번</th>";
+    head += "</tr>";
+    var body = "";
+    for (var s = 0; s < chN(); s++) {
+      body += "<tr><th>" + esc(CH.names[s]) + "</th>";
+      for (var q2 = 0; q2 < CH_Q.length; q2++) {
+        var c = CH.ans[s][q2] || "";
+        var isCur = cur === q2 * chN() + s;
+        body += '<td' + (isCur ? ' aria-current="true" style="font-weight:700;text-decoration:underline"' : '') + '>' + c + '</td>';
+      }
+      body += "</tr>";
+    }
+    return '<div style="overflow-x:auto"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
+  }
+
+  // 3. 질문 화면
+  function viewChar() {
+    if (CH.pos >= chTotal()) { viewCharResult(); return; }
+    var q = chQ(CH.pos), s = chS(CH.pos), Q = CH_Q[q];
+    setMain('<section><h2 tabindex="-1" id="h">' + (q + 1) + '번 질문</h2>' +
+      '<p class="meta">' + (CH.pos + 1) + ' / ' + chTotal() + '</p>' +
+      '<h3>' + esc(Q.q) + '</h3>' +
+      '<p>' + esc(chCall(CH.names[s])) + ', 어떤 선택을 할까요?</p>' +
+      '<div class="row"><button type="button" class="btn say" data-action="charA">A. ' + esc(Q.A) + '</button>' +
+      '<button type="button" class="btn say" data-action="charB">B. ' + esc(Q.B) + '</button></div>' +
+      '<div class="row"><button type="button" class="btn say" data-action="charUndo">이전 선택으로 돌아가기 (백스페이스)</button>' +
+      '<button type="button" class="btn say" data-action="charBack">6회 화면으로</button></div>' +
+      '<p class="meta">지금까지 선택</p>' + chTable(CH.pos) + '</section>');
+    S.narr = chText(CH.pos, true);
+    focusEl(document.getElementById("h")); speak(S.narr);
+  }
+  function chText(p, withQuestion) {
+    var q = chQ(p), s = chS(p), Q = CH_Q[q];
+    return (withQuestion ? CH_ORD[q] + " 질문이에요. " + Q.q + " A, " + Q.A + " B, " + Q.B + " " : "") + chCall(CH.names[s]) + "는 어떤 걸 선택할까요?";
+  }
+
+  // 결과 계산: 고른 쪽에 2점씩. 축마다 질문이 3개라서 동점이 나오지 않아요.
+  function chScore(s) {
+    var pts = [];
+    for (var k = 0; k < CH_AXES.length; k++) pts.push({ a: 0, b: 0 });
+    for (var q = 0; q < CH_Q.length; q++) {
+      var c = CH.ans[s][q];
+      if (c === "A") pts[CH_Q[q].axis].a += 2;
+      if (c === "B") pts[CH_Q[q].axis].b += 2;
+    }
+    var pick = [], key = [];
+    for (var k2 = 0; k2 < CH_AXES.length; k2++) {
+      var win = pts[k2].a >= pts[k2].b ? CH_AXES[k2].a : CH_AXES[k2].b;
+      pick.push(win); key.push(win);
+    }
+    var r = CH_RESULT[key.join("|")] || { name: "알 수 없음", desc: "" };
+    return { pts: pts, pick: pick, character: r.name, desc: r.desc };
+  }
+
+  // 친구 한 명의 점수 줄: "용기 6점 · 지혜 0점 · …"
+  function scoreText(r, sep) {
+    var parts = [];
+    for (var k = 0; k < CH_AXES.length; k++) parts.push(CH_AXES[k].a + " " + r.pts[k].a + "점" + sep + CH_AXES[k].b + " " + r.pts[k].b + "점");
+    return parts.join(sep === " · " ? " / " : ", ");
+  }
+  // 받침이 있으면 "은", 없으면 "는" (마지막 글자 기준)
+  function chEun(n) {
+    var c = n.charCodeAt(n.length - 1);
+    return (c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 !== 0) ? "은" : "는";
+  }
+  // 친구 한 명의 카드 (그림 + 캐릭터 + 점수)
+  function cardHtml(s, r) {
+    var idx = Object.keys(CH_RESULT).indexOf(r.pick.join("|")) + 1;
+    var img = "캐릭터그림/" + (idx < 10 ? "0" : "") + idx + ".png";
+    var rows = "";
+    for (var k = 0; k < CH_AXES.length; k++) {
+      rows += "<tr><td>" + esc(CH_AXES[k].a + " : " + CH_AXES[k].b) + "</td><td>" + r.pts[k].a + " : " + r.pts[k].b + "</td></tr>";
+    }
+    return '<div class="box" style="text-align:center">' +
+      '<h3>' + esc(CH.names[s]) + esc(chEun(CH.names[s])) + '</h3>' +
+      '<img src="' + img + '" alt="' + esc(r.character) + ' 그림" style="max-width:100%;height:auto;border-radius:12px">' +
+      '<h2>' + esc(r.character) + '!</h2>' +
+      '<p class="meta">' + esc(r.pick.join(" · ")) + '</p>' +
+      '<p>' + esc(r.desc) + '</p>' +
+      '<table style="width:100%;margin:auto"><thead><tr><th>성향</th><th>점수</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '</div>';
+  }
+  // 읽는 말용 점수 줄: "용기 4점, 지혜 2점, …" (조각마다 나눠서 읽어요)
+  function scoreSpoken(r) {
+    var parts = [];
+    for (var k = 0; k < CH_AXES.length; k++) {
+      parts.push(CH_AXES[k].a + " " + r.pts[k].a + "점");
+      parts.push(CH_AXES[k].b + " " + r.pts[k].b + "점");
+    }
+    return parts.join(", ");
+  }
+  // 4. 결과 화면
+  function cellsOf(r) {
+    var out = "";
+    for (var k = 0; k < CH_AXES.length; k++) out += "<td>" + r.pts[k].a + " : " + r.pts[k].b + " (" + esc(r.pick[k]) + ")</td>";
+    return out;
+  }
+  function viewCharResult() {
+    var cards = "", rows = "", spoken = "두근두근! 친구들의 캐릭터가 완성됐어요! ";
+    for (var s = 0; s < chN(); s++) {
+      var r = chScore(s);
+      cards += cardHtml(s, r);
+      rows += "<tr><th>" + esc(CH.names[s]) + "</th>" +
+        cellsOf(r) +
+        "<td><strong>" + esc(r.character) + "</strong></td></tr>";
+      spoken += CH.names[s] + chEun(CH.names[s]) + " " + r.character + "예요. " + scoreSpoken(r) + ". " + r.desc + " ";
+    }
+    spoken += "친구마다 좋아하는 것과 잘하는 것이 다르듯이, 캐릭터도 모두 다르게 만들어졌어요!";
+    setMain('<section><h2 tabindex="-1" id="h">🎉 나만의 캐릭터가 탄생했어요!</h2>' + cards +
+      '<h3>우리 친구들의 캐릭터 결과</h3>' +
+      '<div style="overflow-x:auto"><table><thead><tr><th>이름</th><th>용기·지혜</th><th>자연·기계</th><th>혼자·함께</th><th>탐구·실천</th><th>캐릭터</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="meta">숫자는 각 질문에서 고른 선택에 따라 쌓인 점수예요. 어떤 쪽이 더 높은지 확인해 보세요!</p>' +
+      '<div class="row"><button type="button" class="btn primary say" data-action="charStart">처음부터 다시 만들기</button>' +
+      '<button type="button" class="btn say" data-action="charBack">6회 화면으로</button></div></section>');
+    S.narr = spoken;
+    focusEl(document.getElementById("h")); speak(S.narr);
+  }
+
+  function chPick(c) {
+    if (CH.pos >= chTotal()) return;
+    var q = chQ(CH.pos), s = chS(CH.pos);
+    CH.ans[s][q] = c;
+    CH.pos++;
+    render();
+  }
+  function chUndo() {
+    if (CH.pos <= 0) return;
+    CH.pos--;
+    var q = chQ(CH.pos), s = chS(CH.pos);
+    CH.ans[s][q] = null;
+    render();
+  }
+  function chKey(L, k) {
+    if (L === "a") chPick("A");
+    else if (L === "b") chPick("B");
+    else if (k === "Backspace") chUndo();
+  }
+
+  /* ───────── 7회 함수 게임: 마법 배틀 (설계: 7회_함수게임_설계.md) ───────── */
+  var B_ORDER = ["불", "물", "전기"];
+  var B_BEATS = { "전기": "물", "물": "불", "불": "전기" };   // 왼쪽 원소가 오른쪽 원소에 2배
+  var B_SPELLS = {
+    "불불": { name: "불꽃 화살", kind: "atk", el: "불", ability: "보스에게 불 피해 2 (보스 속성이 전기면 2배 피해)" },
+    "물물": { name: "물대포", kind: "atk", el: "물", ability: "보스에게 물 피해 2 (보스 속성이 불이면 2배 피해)" },
+    "전기전기": { name: "벼락치기", kind: "atk", el: "전기", ability: "보스에게 전기 피해 2 (보스 속성이 물이면 2배 피해)" },
+    "불물": { name: "힘의 기운", kind: "buff", ability: "내 공격력 +1 (계속 유지)" },
+    "불전기": { name: "단단한 방패", kind: "shield", ability: "내 방어력 +1 (보스 공격 피해 -1) (계속 유지)" },
+    "물전기": { name: "치유의 물결", kind: "heal", ability: "내 체력 +4 회복" }
+  };
+  var B_KEYS = ["불불", "물물", "전기전기", "불물", "불전기", "물전기"];
+  var B_PAIR = { "불불": ["불", "불"], "물물": ["물", "물"], "전기전기": ["전기", "전기"], "불물": ["불", "물"], "불전기": ["불", "전기"], "물전기": ["물", "전기"] };
+  var B = null;
+
+  function bNew() {
+    B = { turn: 0, hp: 10, boss: 20, bossAtk: 4, bossEl: "불", shield: 0, bonus: 0, made: [], mode: "idle", pick: [], msg: "", fx: [] };
+  }
+  function bFriend() { return CH.names[B.turn % CH.names.length]; }
+  function bPairKey(a, b) {
+    var i = B_ORDER.indexOf(a), j = B_ORDER.indexOf(b);
+    return i <= j ? a + b : b + a;
+  }
+  function bStatus() {
+    return "내 체력 " + B.hp + ", 보스 체력 " + B.boss + ". 보스 속성은 " + B.bossEl + "이에요.";
+  }
+  // 보스 공격까지 남은 턴 (2턴마다 공격)
+  function bUntilBoss() { return 2 - (B.turn % 2); }
+
+  function bRecipeRows() {
+    var rows = "";
+    for (var i = 0; i < B_KEYS.length; i++) {
+      var k = B_KEYS[i], sp = B_SPELLS[k];
+      rows += "<tr><td>" + (i + 1) + "</td><td>" + esc(B_PAIR[k].join(", ")) + "</td><td>" + esc(sp.name) + "</td><td>" + esc(sp.ability) + "</td></tr>";
+    }
+    return '<table><thead><tr><th>번호</th><th>조합</th><th>스킬 이름</th><th>능력</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+  function bRecipeSpoken() {
+    var parts = [];
+    for (var i = 0; i < B_KEYS.length; i++) {
+      var k = B_KEYS[i], sp = B_SPELLS[k];
+      parts.push((i + 1) + "번, " + B_PAIR[k].join(", ") + "을 합치면 " + sp.name + "이에요. " + sp.ability + ".");
+    }
+    return "마법 조합법이에요. " + parts.join(" ");
+  }
+  function bMadeSpoken() {
+    if (B.made.length === 0) return "아직 만든 마법이 없어요.";
+    return "만든 마법은 " + B.made.map(function (k) { return B_SPELLS[k].name + ", " + B_SPELLS[k].ability; }).join(". ") + ".";
+  }
+
+  // 한 번의 행동이 끝난 뒤: 보스 공격 (2턴마다), 승패 확인, 다음 턴 안내
+  function bEndTurn(note) {
+    var parts = [note];
+    B.turn++;
+    if (B.turn % 2 === 0 && B.boss > 0 && B.hp > 0) {
+      var dmg = Math.max(0, B.bossAtk - B.shield);
+      B.hp -= dmg;
+      B.fx.push({ who: "me", text: "-" + dmg });
+      parts.push("보스가 공격했어요! 내 체력이 " + dmg + " 줄었어요.");
+      var others = B_ORDER.filter(function (x) { return x !== B.bossEl; });
+      B.bossEl = others[Math.floor(Math.random() * others.length)];
+      parts.push("보스의 속성이 바뀌었어요. 지금은 " + B.bossEl + " 속성이에요.");
+    }
+    if (B.boss <= 0) parts.push("보스를 무찔렀어요! 모두 축하해요!");
+    else if (B.hp <= 0) parts.push("내 체력이 모두 떨어졌어요. 다시 도전해 봐요.");
+    else {
+      parts.push(B.turn + "턴이 끝났어요. " + bStatus());
+      if (bUntilBoss() === 1) parts.push("다음 턴에 보스가 공격해요.");
+      parts.push("다음은 " + chCall(bFriend()) + " 차례예요.");
+    }
+    B.msg = parts.join(" ");
+    B.mode = "idle";
+    B.pick = [];
+    render();
+    speak(B.msg);
+  }
+
+  function bCraftStart() {
+    if (B.boss <= 0 || B.hp <= 0) return;
+    if (B.made.length >= B_KEYS.length) {
+      B.msg = "마법을 모두 만들었어요. 이제 마법을 쓰세요.";
+      render(); speak(B.msg);
+      return;
+    }
+    B.mode = "craft"; B.pick = [];
+    B.msg = chCall(bFriend()) + " 차례예요. 원소를 두 개 고르세요. 1번 불, 2번 물, 3번 전기예요.";
+    render(); speak(B.msg);
+  }
+  function bElem(name) {
+    if (B.mode !== "craft") return;
+    B.pick.push(name);
+    if (B.pick.length < 2) {
+      B.msg = name + "을 골랐어요. 두 번째 원소를 고르세요.";
+      render(); speak(B.msg);
+      return;
+    }
+    var key = bPairKey(B.pick[0], B.pick[1]);
+    var sp = B_SPELLS[key];
+    if (B.made.indexOf(key) >= 0) {
+      B.mode = "idle"; B.pick = [];
+      B.msg = "이미 만든 마법이에요. 다른 조합을 골라 보세요.";
+      render(); speak(B.msg);
+      return;
+    }
+    B.made.push(key);
+    bEndTurn(B.pick[0] + ", " + B.pick[1] + "을 합쳐서 " + sp.name + "을 만들었어요. 이제 계속 쓸 수 있어요.");
+  }
+  function bCancelPick() {
+    if (B.mode === "craft" && B.pick.length > 0) {
+      B.pick.pop();
+      B.msg = "고르던 원소를 취소했어요. 원소를 고르세요.";
+    } else {
+      B.mode = "idle"; B.pick = [];
+      B.msg = "취소했어요.";
+    }
+    render(); speak(B.msg);
+  }
+  function bUseStart() {
+    if (B.boss <= 0 || B.hp <= 0) return;
+    if (B.made.length === 0) {
+      B.msg = "만든 마법이 없어요. 먼저 마법을 만드세요.";
+      render(); speak(B.msg);
+      return;
+    }
+    B.mode = "use";
+    B.msg = chCall(bFriend()) + " 차례예요. 쓸 마법 번호를 고르세요.";
+    render(); speak(B.msg);
+  }
+  function bCast(key) {
+    if (B.made.indexOf(key) < 0) return;
+    var sp = B_SPELLS[key];
+    var note = chCall(bFriend()) + "가 " + sp.name + "을 썼어요. ";
+    if (sp.kind === "atk") {
+      var mult = (B_BEATS[sp.el] === B.bossEl) ? 2 : 1;
+      var d = (2 + B.bonus) * mult;
+      B.boss = Math.max(0, B.boss - d);
+      B.fx.push({ who: "boss", text: "-" + d });
+      note += (mult === 2 ? "상성이 맞아서 2배! " : "") + "보스에게 " + d + "의 피해를 줬어요. ";
+    } else if (sp.kind === "buff") {
+      B.bonus += 1;
+      note += "공격력이 1 올랐어요. 지금 공격력 보너스는 " + B.bonus + "이에요. ";
+    } else if (sp.kind === "shield") {
+      B.shield += 1;
+      note += "보스의 공격 피해가 1 줄었어요. 지금 줄이는 양은 " + B.shield + "이에요. ";
+    } else if (sp.kind === "heal") {
+      var before = B.hp;
+      B.hp = Math.min(10, B.hp + 4);   // 내 체력은 10이 최대
+      B.fx.push({ who: "me", text: "+" + (B.hp - before) });
+      note += "내 체력이 " + (B.hp - before) + " 회복됐어요. " + (B.hp === 10 ? "최대 체력 10이에요. " : "");
+    }
+    bEndTurn(note);
+  }
+
+  // G: 조합법 (표와 읽기) / S: 상태와 만든 마법 읽기
+  function bInfo(kind) {
+    var t = (kind === "state") ? (bStatus() + " " + bMadeSpoken()) : bRecipeSpoken();
+    B.msg = t;
+    render(); speak(t);
+  }
+  function bExit() { S.screen = "intro"; render(); }
+
+  function bHpBar(now, max, label) {
+    var pct = Math.max(0, Math.min(100, Math.round(now / max * 100)));
+    return '<div class="bhp"><div class="bhp-top"><span>' + esc(label) + '</span><span>' + now + ' / ' + max + '</span></div>' +
+      '<div class="bhp-bar" role="meter" aria-label="' + esc(label) + '" aria-valuemin="0" aria-valuemax="' + max + '" aria-valuenow="' + now + '">' +
+      '<div class="bhp-fill" style="width:' + pct + '%"></div></div></div>';
+  }
+  function bFx(who) {
+    var out = "";
+    for (var i = 0; i < B.fx.length; i++) {
+      if (B.fx[i].who === who) out += '<div class="bfx" aria-hidden="true">' + esc(B.fx[i].text) + '</div>';
+    }
+    return out;
+  }
+  function bSlotHtml(k, n) {
+    var sp = B_SPELLS[k], on = B.made.indexOf(k) >= 0;
+    var label = '<div class="bslot-num">' + n + '번</div>' +
+      '<div class="bslot-pair">' + esc(B_PAIR[k].join(" + ")) + '</div>' +
+      '<div class="bslot-name">' + esc(sp.name) + '</div>' +
+      '<div class="bslot-ab">' + esc(sp.ability) + '</div>' +
+      '<div class="bslot-state">' + (on ? '눌러서 쓰기' : '아직 없어요') + '</div>';
+    return '<button type="button" class="bslot' + (on ? ' on' : '') + ' say" data-action="' + (on ? 'bCast' : 'bLocked') + '" data-k="' + k + '" aria-label="' + n + '번 ' + esc(sp.name) + (on ? ' 쓰기' : ' 아직 없음') + '">' + label + '</button>';
+  }
+  function viewBattle() {
+    if (!B) bNew();
+    var css = '<style>' +
+      '.bwrap{display:grid;grid-template-columns:1fr;gap:14px}' +
+      '@media (min-width:860px){.bwrap{grid-template-columns:1.6fr 1fr}}' +
+      '.bfield{display:grid;grid-template-columns:1fr 1fr;gap:12px}' +
+      '.bchar{position:relative;border:3px solid var(--line);border-radius:14px;padding:12px;text-align:center}' +
+      '.bchar .face{font-size:64px;line-height:1.2}' +
+      '.bbuff{display:flex;justify-content:space-between;font-size:18px;font-weight:700;margin:2px 0 6px}' +
+      '.bhp{margin:6px 0;text-align:left}' +
+      '.bhp-top{display:flex;justify-content:space-between;font-size:18px;font-weight:700}' +
+      '.bhp-bar{height:22px;border:2px solid var(--line);border-radius:999px;overflow:hidden}' +
+      '.bhp-fill{height:100%;background:var(--accent);transition:width .4s ease}' +
+      '.bfx{position:absolute;left:50%;top:30%;transform:translateX(-50%);font-size:40px;font-weight:800;color:var(--bad,#c0392b);animation:bfxUp 1.8s ease-out forwards;pointer-events:none}' +
+      '@keyframes bfxUp{0%{opacity:0;margin-top:20px}15%{opacity:1}100%{opacity:0;margin-top:-30px}}' +
+      '.bslots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}' +
+      '.bslot{aspect-ratio:1 / 1;min-height:0;height:auto;padding:8px;border:3px dashed var(--line);border-radius:12px;background:transparent;color:var(--fg);text-align:center;display:flex;flex-direction:column;justify-content:center;gap:2px;font-size:15px;line-height:1.35;overflow:hidden}' +
+      '.bslot.on{border-style:solid;border-color:var(--accent);background:var(--card)}' +
+      '.bslot:not(.on){opacity:.75}' +
+      '.bslot-pair{font-weight:700;font-size:14px}.bslot-name{font-size:18px;font-weight:700}.bslot-ab{font-size:13px}.bslot-state{font-size:13px}' +
+      '.brecipe{width:100%}.brecipe h3{font-size:22px;margin:4px 0}' +
+      '.brecipe table{font-size:18px;width:100%;border-collapse:collapse}' +
+      '.brecipe th,.brecipe td{padding:6px 8px;text-align:left;border-bottom:2px solid var(--line)}' +
+      '</style>';
+    var body = "";
+    if (B.boss <= 0 || B.hp <= 0) {
+      body = '<div class="row"><button type="button" class="btn primary say" data-action="battleStart">다시 도전하기</button></div>';
+    } else if (B.mode === "craft") {
+      body = '<div class="row">' +
+        '<button type="button" class="btn say" data-action="bElem" data-e="불">1. 불</button>' +
+        '<button type="button" class="btn say" data-action="bElem" data-e="물">2. 물</button>' +
+        '<button type="button" class="btn say" data-action="bElem" data-e="전기">3. 전기</button>' +
+        '<button type="button" class="btn say" data-action="bCancel">취소 (백스페이스)</button></div>';
+    } else if (B.mode === "use") {
+      body = '<div class="row">';
+      for (var u = 0; u < B_KEYS.length; u++) {
+        if (B.made.indexOf(B_KEYS[u]) >= 0) body += '<button type="button" class="btn say" data-action="bCast" data-k="' + B_KEYS[u] + '">' + (u + 1) + '번 ' + esc(B_SPELLS[B_KEYS[u]].name) + ' 쓰기</button>';
+      }
+      body += '<button type="button" class="btn say" data-action="bCancel">취소 (백스페이스)</button></div>' +
+        '<p class="meta">목록이나 위의 칸을 눌러서 마법을 써요. 숫자 키 1~6도 같아요.</p>';
+    } else {
+      body = '<div class="row"><button type="button" class="btn primary say" data-action="bCraft">마법 만들기 (M)</button>' +
+        '<button type="button" class="btn primary say" data-action="bUse">마법 쓰기 (U)</button></div>' +
+        '<p class="meta">위의 칸을 누르거나 숫자 키 1~6을 누르면 마법을 써요.</p>';
+    }
+    var slots = "";
+    for (var j = 0; j < B_KEYS.length; j++) slots += bSlotHtml(B_KEYS[j], j + 1);
+    var field = '<div class="bfield">' +
+      '<div class="bchar"><div class="face" aria-hidden="true">🧑</div>' +
+      '<div class="bbuff"><span>⚔️ 공격 +' + B.bonus + '</span><span>🛡️ 방어 +' + B.shield + '</span></div>' +
+      '<strong>내 캐릭터</strong>' + bHpBar(B.hp, 10, "내 체력") + bFx("me") + '</div>' +
+      '<div class="bchar"><div class="face" aria-hidden="true">👹</div><strong>보스 · 속성 ' + esc(B.bossEl) + '</strong>' + bHpBar(B.boss, 20, "보스 체력") + bFx("boss") + '</div>' +
+      '</div>';
+    var turnInfo = (B.boss <= 0 || B.hp <= 0) ? "" : ('<p class="meta"><strong>' + (B.turn + 1) + '턴</strong> · ' + esc(chCall(bFriend())) + ' 차례' + (bUntilBoss() === 1 ? ' · <strong>다음 턴에 보스가 공격해요</strong>' : '') + '</p>');
+    var recipe = '<div class="brecipe"><h3>마법 조합법</h3>' + bRecipeRows() + '</div>';
+    setMain(css + '<section><h2 tabindex="-1" id="h">⚔️ 마법 배틀</h2>' + turnInfo +
+      '<div class="bwrap"><div>' + field +
+      '<div class="bslots" aria-label="스킬 6칸">' + slots + '</div>' + body +
+      '<div class="row"><button type="button" class="btn say" data-action="bState">상태 보기 (S)</button>' +
+      '<button type="button" class="btn say" data-action="bRecipe">조합법 읽기 (G)</button>' +
+      '<button type="button" class="btn say" data-action="bExit">7회 화면으로</button></div></div>' +
+      recipe + '</div></section>');
+    B.fx = [];   // 숫자는 한 번만 띄워요
+    S.narr = B.msg;
+    focusEl(document.getElementById("h"));
+  }
+  function battleKey(L, k) {
+    if (L === "m") bCraftStart();
+    else if (L === "u") bUseStart();
+    else if (L === "s") bInfo("state");
+    else if (L === "g" || L === "l") bInfo("recipe");
+    else if (k === "Backspace") bCancelPick();
+    else if (B.mode === "craft" && (k === "1" || k === "2" || k === "3")) bElem(["불", "물", "전기"][+k - 1]);
+    else if ((B.mode === "idle" || B.mode === "use") && /^[1-6]$/.test(k)) { if (B.made.indexOf(B_KEYS[+k - 1]) >= 0) bCast(B_KEYS[+k - 1]); else { B.msg = (+k) + "번 마법은 아직 없어요."; render(); speak(B.msg); } }
   }
 
   function viewQ() {
@@ -2540,6 +3030,25 @@ var MISSIONS = {
     else if (a === "mnext") { mNext(); }
     else if (a === "mskip") { S.screen = "q"; render(); }
     else if (a === "toSelect") { S.resetArmed = false; S.screen = "select"; render(); }
+    else if (a === "charStart") { S.screen = "charSetup"; render(); }
+    else if (a === "chAdd") { chReadNames(); if (CH.names.length < 5) CH.names.push((CH.names.length + 1) + "번째 사람"); render(); }
+    else if (a === "chDel") { chReadNames(); if (CH.names.length > 2) CH.names.pop(); render(); }
+    else if (a === "chGo") { chReadNames(); S.screen = "charIntro"; render(); }
+    else if (a === "chPlay") { chStartAnswers(); S.screen = "char"; render(); }
+    else if (a === "charA") chPick("A");
+    else if (a === "charB") chPick("B");
+    else if (a === "charUndo") chUndo();
+    else if (a === "charBack") { S.screen = "intro"; render(); }
+    else if (a === "battleStart") { bNew(); B.msg = "보스가 나타났어요! 내 체력 10, 보스 체력 20. 보스 속성은 불이에요. 마법 만들기나 마법 쓰기를 고르세요."; S.screen = "battle"; render(); speak(B.msg); }
+    else if (a === "bCraft") bCraftStart();
+    else if (a === "bUse") bUseStart();
+    else if (a === "bElem") bElem(b.getAttribute("data-e"));
+    else if (a === "bCast") bCast(b.getAttribute("data-k"));
+    else if (a === "bLocked") { B.msg = "아직 만들지 않은 마법이에요. 마법 만들기로 먼저 만드세요."; render(); speak(B.msg); }
+    else if (a === "bCancel") bCancelPick();
+    else if (a === "bState") bInfo("state");
+    else if (a === "bRecipe") bInfo("recipe");
+    else if (a === "bExit") bExit();
     else if (a === "nextSession") startSession(SESSIONS[S.si].n + 1);
     else if (a === "opt") choose(+b.getAttribute("data-i"));
     else if (a === "repeat") { speak(S.narr); }
@@ -2603,10 +3112,13 @@ var MISSIONS = {
   /* 키보드 단축키 */
   document.addEventListener("keydown", function (e) {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
+    if (e.target && e.target.tagName === "INPUT") return;   // 이름 입력 중에는 단축키를 쓰지 않아요
     var k = e.key, L = letterOf(e);
     if (k === "Escape") { stopSpeech(); return; }
     if (L === "r") { if (S.narr) { speak(S.narr); } return; }
     if (S.screen === "m") { mKey(e); return; }
+    if (S.screen === "char") { chKey(L, k); return; }
+    if (S.screen === "battle") { battleKey(L, k); return; }
     if (S.screen !== "q") return;
     if (/^[1-9]$/.test(k)) { var q = SESSIONS[S.si].qs[S.qi], i = +k - 1; if (i < q.o.length) { e.preventDefault(); ctx(); choose(i); } }
     else if (L === "h") hintBtn();
