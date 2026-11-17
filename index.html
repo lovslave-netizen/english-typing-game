@@ -736,6 +736,10 @@
       var hb = document.createElement("button"); hb.type = "button"; hb.className = "btn"; hb.id = "quizHintBtn";
       hb.addEventListener("click", function () { ctx(); buyHint(); });
       $("quizOpts").parentNode.insertBefore(hb, $("quizOpts").nextSibling);
+      var rb = document.createElement("button"); rb.type = "button"; rb.className = "btn"; rb.id = "quizReplayBtn";
+      rb.textContent = "문제 다시 듣기 (1번 키)";
+      rb.addEventListener("click", function () { ctx(); if (quizState) speakSeq(quizState.speech); });
+      $("quizOpts").parentNode.insertBefore(rb, $("quizOpts"));
     }
     $("quizHint").textContent = "";
     $("quizHintBtn").textContent = "힌트 보기 (H키) · " + HINT_COST[0] + "포인트";
@@ -790,15 +794,40 @@
   var boxState = null;
   // 상자 값: -100 ~ 100 을 10 단위로 고르고, 모든 값에 +10 (기본) 과 포인트로 산 +10 을 더해요. 100 을 넘으면 100.
   var BOX_COST = 20;
+  function boxUI(show, text, buttons) {
+    var el = $("boxPanel");
+    if (!el) {
+      el = document.createElement("div"); el.id = "boxPanel"; el.setAttribute("role", "status"); el.setAttribute("aria-live", "polite");
+      el.style.cssText = "border:4px solid currentColor;border-radius:14px;padding:12px 16px;margin:12px 0;font-size:22px;font-weight:700";
+      el.innerHTML = '<p id="boxText"></p><div id="boxBtns"><button type="button" class="btn" id="boxY">열기 (Y)</button> <button type="button" class="btn" id="boxN">그냥 지나가기 (N)</button> <button type="button" class="btn" id="boxB">플러스 올리기 (B, 20포인트)</button></div>';
+      $("fb").parentNode.insertBefore(el, $("fb"));
+      $("boxY").addEventListener("click", function () { ctx(); openBox(); });
+      $("boxN").addEventListener("click", function () { ctx(); skipBox(); });
+      $("boxB").addEventListener("click", function () { ctx(); buyBox(); });
+    }
+    el.hidden = !show;
+    $("boxText").textContent = text || "";
+    $("boxBtns").hidden = !buttons;
+  }
   function startBox(lead) {
     boxState = { lead: lead, buy: 0 };
-    $("fb").textContent = "상자가 나타났어요! Y 키는 열기, N 키는 그냥 지나가기예요. B 키는 20포인트로 +10을 올려요.";
+    var t = "상자가 나타났어요! 열어 볼까요? Y 키는 열기, N 키는 그냥 지나가기예요. B 키는 20포인트로 플러스를 올려요.";
+    boxUI(true, t, true);
+    $("fb").textContent = t;
     speakSeq([ko("상자가 나타났어요!"), ko("열어 볼까요?"), ko("Y 키는 열기, N 키는 그냥 지나가기예요."), ko("B 키는 20포인트로 플러스를 올려요.")]);
   }
   function buyBox() {
     if (!boxState) return;
-    if (!ptSpend(BOX_COST)) { speakSeq([ko("포인트가 부족해요.")]); return; }
+    if (!ptSpend(BOX_COST)) {
+      boxUI(true, "포인트가 부족해요. 20포인트가 필요해요.", true);
+      speakSeq([ko("포인트가 부족해요.")]);
+      return;
+    }
     boxState.buy++;
+    var now = 10 + 10 * boxState.buy;
+    var t = "플러스를 10 올렸어요! 지금 상자 값은 +" + now + "만큼 올라가 있어요. 한 번 더 누르면 또 올라가요.";
+    boxUI(true, t, true);
+    $("fb").textContent = t;
     speakSeq([ko("플러스가 10 올랐어요.")]);
   }
   function openBox() {
@@ -808,59 +837,20 @@
     var v = Math.min(100, -100 + 10 * idx + boost);
     st.score += v;
     var msg = v > 0 ? "상자에서 " + v + "점이 나왔어요!" : (v < 0 ? "상자에서 " + (-v) + "점을 잃었어요." : "상자는 비어 있었어요. 0점이에요.");
+    boxUI(true, "상자를 열었어요! " + msg, false);
+    setTimeout(function () { if (!boxState) boxUI(false, "", false); }, 4000);
     render();
     changeSentence(1, lead.concat([ko(msg)]));
+    $("fb").textContent = msg;   // 상자 결과를 화면에도 보여 줘요
   }
   function skipBox() {
     var lead = boxState.lead;
     boxState = null;
+    boxUI(false, "", false);
     changeSentence(1, lead.concat([ko("상자를 그냥 지나갔어요.")]));
+    $("fb").textContent = "상자를 그냥 지나갔어요.";
   }
-  ptLoad(); ptShow();   // 이 기기에 저장된 칭호와 포인트를 불러와요
-  var OPT_NAMES = ["일번", "이번", "삼번", "사번"];
   var quizState = null, quizCount = 0, quizEvery = 5;
-  function shuffleArr(a) {
-    return a.map(function (x) { return [Math.random(), x]; }).sort(function (p, q) { return p[0] - q[0]; }).map(function (p) { return p[1]; });
-  }
-  function startQuiz(lead) {
-    var q = QUIZ[Math.floor(Math.random() * QUIZ.length)];
-    var others = shuffleArr(QUIZ.filter(function (x) { return x !== q; })).slice(0, 3);
-    var opts = shuffleArr([q].concat(others));
-    quizState = { q: q, opts: opts, ans: opts.indexOf(q) };
-    quizCount = 0; quizEvery = 5;
-    $("quizQ").textContent = "보너스 퀴즈! 이 말을 영어로 하면 무엇일까요? " + q.ko + "  (A, S, D, F 로 고르세요)";
-    var box = $("quizOpts"); box.textContent = "";
-    opts.forEach(function (o, i) {
-      var b = document.createElement("button");
-      b.type = "button"; b.className = "btn";
-      b.textContent = "ASDF"[i] + ". " + o.en;
-      b.addEventListener("click", function () { ctx(); answerQuiz(i); });
-      box.appendChild(b);
-    });
-    $("quiz").hidden = false;
-    var speech = [ko("보너스 퀴즈예요!"), ko("이 말을 영어로 하면 무엇일까요?"), ko(q.ko)];
-    speech[0].pause = 300; speech[1].pause = 300; speech[2].pause = 600;
-    quizState.speech = speech;   // 1번 키를 누르면 이 문장을 다시 읽어요
-    opts.forEach(function (o, i) {
-      speech.push(ko(["에이", "에스", "디", "에프"][i]), enWord(o.en));
-      speech[speech.length - 2].pause = 250; speech[speech.length - 1].pause = 900;
-    });
-    speech.push(ko("일번은 에이, 이번은 에스, 삼번은 디, 사번은 에프를 누르면 선택할 수 있어요."));
-    var parts = (lead || []).concat(speech);   // 보기까지 다 채운 뒤에 읽을 목록을 만들어요
-    $("fb").textContent = "";
-    speakSeq(parts);
-  }
-  function answerQuiz(i) {
-    if (!quizState) return;
-    var right = i === quizState.ans, answer = quizState.opts[quizState.ans];
-    quizState = null;
-    $("quiz").hidden = true;
-    st.score += right ? 200 : 100;
-    var res = right ? [ko("정답이에요!"), ko("200점")] : [ko("아쉬워요."), ko("정답은"), enWord(answer.en), ko("100점")];
-    render();
-    changeSentence(1, res);
-  }
-  function closeQuiz() { quizState = null; quizCount = 0; $("quiz").hidden = true; }
 
   function startGame(mode) {
     ctx();
@@ -1092,6 +1082,7 @@
   $("btnSlower").addEventListener("click", function () { ctx(); changeSpeed(-1); });
   $("btnFaster").addEventListener("click", function () { ctx(); changeSpeed(1); });
   document.querySelectorAll(".btn").forEach(function (b) { b.addEventListener("click", function () { b.blur(); }); });
+  ptLoad(); ptShow();
   paintStart();
 })();
 </script>

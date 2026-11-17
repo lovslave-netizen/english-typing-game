@@ -623,6 +623,10 @@
       var hb = document.createElement("button"); hb.type = "button"; hb.className = "btn"; hb.id = "quizHintBtn";
       hb.addEventListener("click", function () { ctx(); buyHint(); });
       $("quizOpts").parentNode.insertBefore(hb, $("quizOpts").nextSibling);
+      var rb = document.createElement("button"); rb.type = "button"; rb.className = "btn"; rb.id = "quizReplayBtn";
+      rb.textContent = "문제 다시 듣기 (1번 키)";
+      rb.addEventListener("click", function () { ctx(); if (quizState) speakSeq(quizState.speech); });
+      $("quizOpts").parentNode.insertBefore(rb, $("quizOpts"));
     }
     $("quizHint").textContent = "";
     $("quizHintBtn").textContent = "힌트 보기 (H키) · " + HINT_COST[0] + "포인트";
@@ -677,15 +681,40 @@
   var boxState = null;
   // 상자 값: -100 ~ 100 을 10 단위로 고르고, 모든 값에 +10 (기본) 과 포인트로 산 +10 을 더해요. 100 을 넘으면 100.
   var BOX_COST = 20;
+  function boxUI(show, text, buttons) {
+    var el = $("boxPanel");
+    if (!el) {
+      el = document.createElement("div"); el.id = "boxPanel"; el.setAttribute("role", "status"); el.setAttribute("aria-live", "polite");
+      el.style.cssText = "border:4px solid currentColor;border-radius:14px;padding:12px 16px;margin:12px 0;font-size:22px;font-weight:700";
+      el.innerHTML = '<p id="boxText"></p><div id="boxBtns"><button type="button" class="btn" id="boxY">열기 (Y)</button> <button type="button" class="btn" id="boxN">그냥 지나가기 (N)</button> <button type="button" class="btn" id="boxB">플러스 올리기 (B, 20포인트)</button></div>';
+      $("fb").parentNode.insertBefore(el, $("fb"));
+      $("boxY").addEventListener("click", function () { ctx(); openBox(); });
+      $("boxN").addEventListener("click", function () { ctx(); skipBox(); });
+      $("boxB").addEventListener("click", function () { ctx(); buyBox(); });
+    }
+    el.hidden = !show;
+    $("boxText").textContent = text || "";
+    $("boxBtns").hidden = !buttons;
+  }
   function startBox(lead) {
     boxState = { lead: lead, buy: 0 };
-    $("fb").textContent = "상자가 나타났어요! Y 키는 열기, N 키는 그냥 지나가기예요. B 키는 20포인트로 +10을 올려요.";
+    var t = "상자가 나타났어요! 열어 볼까요? Y 키는 열기, N 키는 그냥 지나가기예요. B 키는 20포인트로 플러스를 올려요.";
+    boxUI(true, t, true);
+    $("fb").textContent = t;
     speakSeq([ko("상자가 나타났어요!"), ko("열어 볼까요?"), ko("Y 키는 열기, N 키는 그냥 지나가기예요."), ko("B 키는 20포인트로 플러스를 올려요.")]);
   }
   function buyBox() {
     if (!boxState) return;
-    if (!ptSpend(BOX_COST)) { speakSeq([ko("포인트가 부족해요.")]); return; }
+    if (!ptSpend(BOX_COST)) {
+      boxUI(true, "포인트가 부족해요. 20포인트가 필요해요.", true);
+      speakSeq([ko("포인트가 부족해요.")]);
+      return;
+    }
     boxState.buy++;
+    var now = 10 + 10 * boxState.buy;
+    var t = "플러스를 10 올렸어요! 지금 상자 값은 +" + now + "만큼 올라가 있어요. 한 번 더 누르면 또 올라가요.";
+    boxUI(true, t, true);
+    $("fb").textContent = t;
     speakSeq([ko("플러스가 10 올랐어요.")]);
   }
   function openBox() {
@@ -695,13 +724,18 @@
     var v = Math.min(100, -100 + 10 * idx + boost);
     st.score += v;
     var msg = v > 0 ? "상자에서 " + v + "점이 나왔어요!" : (v < 0 ? "상자에서 " + (-v) + "점을 잃었어요." : "상자는 비어 있었어요. 0점이에요.");
+    boxUI(true, "상자를 열었어요! " + msg, false);
+    setTimeout(function () { if (!boxState) boxUI(false, "", false); }, 4000);
     render();
     changeSentence(1, lead.concat([ko(msg)]));
+    $("fb").textContent = msg;   // 상자 결과를 화면에도 보여 줘요
   }
   function skipBox() {
     var lead = boxState.lead;
     boxState = null;
+    boxUI(false, "", false);
     changeSentence(1, lead.concat([ko("상자를 그냥 지나갔어요.")]));
+    $("fb").textContent = "상자를 그냥 지나갔어요.";
   }
   function pressEnter() {
     var lead = [], msg = "";
